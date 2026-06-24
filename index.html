@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WorkBuddy PDF 工具箱</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <!-- 头部 -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">📄</span>
+        <h1>WorkBuddy PDF 工具箱</h1>
+      </div>
+      <p class="subtitle">免费、安全、高效的在线 PDF 处理工具</p>
+    </header>
+
+    <!-- 功能卡片区域 -->
+    <main class="main">
+      <div class="tools-grid">
+        <!-- PDF 合并 -->
+        <div class="tool-card" onclick="showTool('merge')">
+          <div class="tool-icon">🔗</div>
+          <h3>PDF 合并</h3>
+          <p>将多个 PDF 文件合并为一个</p>
+        </div>
+
+        <!-- PDF 分割 -->
+        <div class="tool-card" onclick="showTool('split')">
+          <div class="tool-icon">✂️</div>
+          <h3>PDF 分割</h3>
+          <p>将 PDF 按页面分割成多个文件</p>
+        </div>
+
+        <!-- PDF 转图片 -->
+        <div class="tool-card" onclick="showTool('pdf2img')">
+          <div class="tool-icon">🖼️</div>
+          <h3>PDF 转图片</h3>
+          <p>将 PDF 页面转换为图片</p>
+        </div>
+
+        <!-- 图片转 PDF -->
+        <div class="tool-card" onclick="showTool('img2pdf')">
+          <div class="tool-icon">📸</div>
+          <h3>图片转 PDF</h3>
+          <p>将图片合并为 PDF 文件</p>
+        </div>
+
+        <!-- PDF 压缩 -->
+        <div class="tool-card" onclick="showTool('compress')">
+          <div class="tool-icon">📦</div>
+          <h3>PDF 压缩</h3>
+          <p>减小 PDF 文件大小</p>
+        </div>
+
+        <!-- 添加水印 -->
+        <div class="tool-card" onclick="showTool('watermark')">
+          <div class="tool-icon">💧</div>
+          <h3>添加水印</h3>
+          <p>为 PDF 添加文字或图片水印</p>
+        </div>
+
+        <!-- PDF 旋转 -->
+        <div class="tool-card" onclick="showTool('rotate')">
+          <div class="tool-icon">🔄</div>
+          <h3>PDF 旋转</h3>
+          <p>旋转 PDF 页面方向</p>
+        </div>
+
+        <!-- PDF 删除页面 -->
+        <div class="tool-card" onclick="showTool('delete')">
+          <div class="tool-icon">🗑️</div>
+          <h3>删除页面</h3>
+          <p>删除 PDF 中的指定页面</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- 工具操作面板 -->
+    <div id="tool-panel" class="tool-panel hidden">
+      <div class="panel-header">
+        <button class="back-btn" onclick="hideTool()">← 返回</button>
+        <h2 id="tool-title">工具名称</h2>
+      </div>
+      <div id="tool-content" class="panel-content">
+        <!-- 动态加载工具内容 -->
+      </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+      <p>© 2024 WorkBuddy PDF 工具箱 | 所有操作均在本地完成，文件不会上传到服务器</p>
+    </footer>
+  </div>
+
+  <!-- 加载提示 -->
+  <div id="loading" class="loading hidden">
+    <div class="loading-spinner"></div>
+    <p>正在处理...</p>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
