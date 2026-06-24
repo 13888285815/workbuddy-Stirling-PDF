@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkBuddy PDF 工具箱</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --sidebar-bg: #1e293b;
+  --card-bg: #334155;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --border: #475569;
+  --radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; border-right: 1px solid var(--border); flex-shrink: 0; }
+.sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
+.sidebar-header h1 { font-size: 18px; display: flex; align-items: center; gap: 8px; }
+.sidebar-header p { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.category-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+.cat-title { padding: 8px 20px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 1px; }
+.cat-item { padding: 8px 20px 8px 28px; cursor: pointer; font-size: 14px; transition: background 0.15s; border-left: 3px solid transparent; }
+.cat-item:hover { background: rgba(59,130,246,0.1); }
+.cat-item.active { background: rgba(59,130,246,0.15); border-left-color: var(--accent); color: var(--accent); }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); }
+.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+.status-dot.online { background: var(--success); }
+.status-dot.offline { background: var(--danger); }
+
+/* Main Content */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { padding: 16px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--sidebar-bg); }
+.topbar h2 { font-size: 20px; }
+.topbar-actions { display: flex; gap: 12px; }
+.content { flex: 1; overflow-y: auto; padding: 32px; }
+
+/* Function Cards Grid */
+.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.func-card { background: var(--card-bg); border-radius: var(--radius); padding: 20px; cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: 1px solid transparent; }
+.func-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); border-color: var(--accent); }
+.func-card-icon { font-size: 28px; margin-bottom: 12px; }
+.func-card h3 { font-size: 15px; margin-bottom: 6px; }
+.func-card p { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.func-card-tags { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: rgba(59,130,246,0.2); color: var(--accent); }
+
+/* Modal / Panel */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; justify-content: center; align-items: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: var(--sidebar-bg); border-radius: 12px; width: 90%; max-width: 640px; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border); }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 18px; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 24px; cursor: pointer; }
+.modal-body { padding: 24px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+
+/* Form Elements */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%; padding: 10px 12px; background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: var(--radius); color: var(--text); font-size: 14px; outline: none;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--accent); }
+.form-group textarea { resize: vertical; min-height: 60px; }
+
+/* Drop Zone */
+.drop-zone {
+  border: 2px dashed var(--border); border-radius: var(--radius); padding: 40px 20px;
+  text-align: center; cursor: pointer; transition: border-color 0.2s;
+}
+.drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(59,130,246,0.05); }
+.drop-zone-icon { font-size: 40px; margin-bottom: 12px; }
+.drop-zone p { color: var(--text-muted); font-size: 14px; }
+.file-list { margin-top: 12px; }
+.file-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: var(--card-bg); border-radius: 4px; margin-bottom: 4px; font-size: 13px; }
+.file-item button { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 16px; }
+
+/* Buttons */
+.btn { padding: 10px 20px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 14px; transition: opacity 0.15s; }
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: var(--accent); color: white; }
+.btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Progress */
+.progress-bar { width: 100%; height: 6px; background: var(--card-bg); border-radius: 3px; overflow: hidden; margin: 12px 0; }
+.progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; width: 0%; }
+.result-area { margin-top: 16px; padding: 16px; background: var(--card-bg); border-radius: var(--radius); display: none; }
+.result-area.show { display: block; }
+.result-area pre { white-space: pre-wrap; word-break: break-all; font-size: 13px; color: var(--text-muted); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { width: 200px; }
+  .cards-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+}
+@media (max-width: 600px) {
+  .sidebar { display: none; }
+  .content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h1>📄 WorkBuddy</h1>
+    <p>PDF 工具箱 v1.0</p>
+  </div>
+  <div class="category-nav" id="categoryNav"></div>
+  <div class="sidebar-footer">
+    <span class="status-dot offline" id="statusDot"></span>
+    <span id="statusText">连接中...</span>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <h2 id="pageTitle">全部功能</h2>
+    <div class="topbar-actions">
+      <button class="btn btn-secondary" onclick="location.reload()">🔄 刷新</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="cards-grid" id="cardsGrid"></div>
+  </div>
+</div>
+
+<!-- Function Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">功能名称</h3>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="modalDesc" style="color:var(--text-muted);font-size:13px;margin-bottom:20px;"></p>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-zone-icon">📁</div>
+        <p>拖拽文件到这里，或点击选择</p>
+        <input type="file" id="fileInput" multiple style="display:none" onchange="handleFiles(this.files)">
+      </div>
+      <div class="file-list" id="fileList"></div>
+      <div id="paramFields"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+      <button class="btn btn-primary" id="execBtn" onclick="executeFunction()" disabled>执行</button>
+    </div>
+  </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal-overlay" id="resultOverlay">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h3>处理结果</h3>
+      <button class="modal-close" onclick="closeResult()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <p id="resultStatus" style="font-size:13px;color:var(--text-muted);"></p>
+      <div class="result-area" id="resultArea"></div>
+    </div>
+    <div class="modal-footer" id="resultFooter" style="display:none;">
+      <a class="btn btn-primary" id="downloadLink" download="result.pdf">⬇ 下载文件</a>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// State
+// ============================================================
+let allFunctions = [];
+let categories = {};
+let selectedCategory = 'all';
+let selectedFiles = [];
+let currentFunction = null;
+let spdfUrl = '';
+
+// ============================================================
+// Init
+// ============================================================
+async function init() {
+  await loadFunctions();
+  renderSidebar();
+  renderCards();
+  checkStatus();
+  setupDragDrop();
+}
+
+async function loadFunctions() {
+  try {
+    const res = await fetch('/api/functions');
+    allFunctions = await res.json();
+    categories = {};
+    allFunctions.forEach(fn => {
+      if (!categories[fn.category]) categories[fn.category] = [];
+      categories[fn.category].push(fn);
+    });
+  } catch(e) {
+    console.error('Failed to load functions:', e);
+    allFunctions = [];
+  }
+}
+
+async function checkStatus() {
+  try {
+    const res = await fetch('/api/status');
+    const data = await res.json();
+    const dot = document.getElementById('statusDot');
+    const text = document.getElementById('statusText');
+    if (data.status === 'online') {
+      dot.className = 'status-dot online';
+      text.textContent = `后端在线 · ${data.functions} 个功能`;
+    } else {
+      dot.className = 'status-dot offline';
+      text.textContent = '后端离线 - 请启动 Stirling-PDF';
+    }
+  } catch(e) {
+    document.getElementById('statusDot').className = 'status-dot offline';
+    document.getElementById('statusText').textContent = '后端离线';
+  }
+}
+
+// ============================================================
+// Render Sidebar
+// ============================================================
+function renderSidebar() {
+  const nav = document.getElementById('categoryNav');
+  let html = '<div class="cat-item ' + (selectedCategory==='all'?'active':'') + '" onclick="selectCategory(\'all\')">📋 全部功能</div>';
+  for (const [cat, fns] of Object.entries(categories)) {
+    html += `<div class="cat-title">${cat} (${fns.length})</div>`;
+    fns.forEach(fn => {
+      html += `<div class="cat-item ${selectedCategory===cat?'active':''}" onclick="selectCategory('${cat}')">${fn.name}</div>`;
+    });
+  }
+  nav.innerHTML = html;
+}
+
+function selectCategory(cat) {
+  selectedCategory = cat;
+  const title = cat === 'all' ? '全部功能' : cat;
+  document.getElementById('pageTitle').textContent = title;
+  renderSidebar();
+  renderCards();
+}
+
+// ============================================================
+// Render Cards
+// ============================================================
+function renderCards() {
+  const grid = document.getElementById('cardsGrid');
+  const filtered = selectedCategory === 'all' ? allFunctions : allFunctions.filter(f => f.category === selectedCategory);
+  const icons = {
+    merge:'🔗', 'split-pages':'✂️', rotate:'🔄', 'add-password':'🔒', 'img-to-pdf':'🖼️',
+    compress:'📦', ocr:'🔍', repair:'🛠️', flatten:'📄', watermark:'💧',
+    'remove-pages':'❌', organize:'📑', crop:'📐', scale:'🔎', overlay:'◧',
+    'pdf-to-word':'📝', 'pdf-to-img':'🏞️', 'pdf-to-text':'📜', 'pdf-to-csv':'📊',
+    'pdf-to-html':'🌐', 'pdf-to-markdown':'📕', 'pdf-to-presentation':'📽️',
+    'url-to-pdf':'🔗', 'html-to-pdf':'💻', 'markdown-to-pdf':'📋',
+    sanitize:'🧹', 'auto-redact':'🖤', redact:'⬛', 'get-info':'ℹ️',
+    'add-page-numbers':'🔢', 'add-image':'🎨', 'add-stamp':'🏅',
+    'update-metadata':'📰', 'auto-rename':'🏷️', 'auto-split':'📚',
+    invert:'🌓', 'remove-blanks':'📃', 'extract-images':'🖼️',
+    'remove-password':'🔓', 'cert-sign':'✍️', 'validate-signature':'✅',
+    'remove-cert-sign':'🚫', 'show-javascript':'💻', 'remove-image':'🚫🖼️',
+    'single-page':'📄', 'multi-layout':'📐', 'split-by-size':'📏',
+    'split-sections':'📑', 'split-chapters':'📚', 'pdf-to-xml':'🏷️',
+    'pdf-to-pdfa':'📦', 'ebook-to-pdf':'📖', 'file-to-pdf':'📁',
+    'decompress':'📈', 'extract-scans':'🔎', 'add-attachments':'📎',
+    'filter-size':'📏', 'filter-text':'🔤', 'filter-image':'🖼️',
+    'filter-page-size':'📐', 'filter-page-count':'🔢', 'filter-page-rotation':'🔄'
+  };
+  grid.innerHTML = filtered.map(fn => `
+    <div class="func-card" onclick="openFunction('${fn.id}')">
+      <div class="func-card-icon">${icons[fn.id] || '📄'}</div>
+      <h3>${fn.name}</h3>
+      <p>${fn.description}</p>
+      <div class="func-card-tags">
+        ${fn.input_types.map(t=>`<span class="tag">${t}</span>`).join('')}
+        <span class="tag">→ ${fn.output_type}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// Function Modal
+// ============================================================
+function openFunction(id) {
+  currentFunction = allFunctions.find(f => f.id === id);
+  if (!currentFunction) return;
+  selectedFiles = [];
+  document.getElementById('modalTitle').textContent = currentFunction.name;
+  document.getElementById('modalDesc').textContent = currentFunction.description;
+  document.getElementById('fileList').innerHTML = '';
+  document.getElementById('fileInput').value = '';
+  renderParamFields();
+  updateExecButton();
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function renderParamFields() {
+  const container = document.getElementById('paramFields');
+  if (!currentFunction || !currentFunction.params || currentFunction.params.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = currentFunction.params.map(p => {
+    if (p.type === 'select') {
+      return `<div class="form-group"><label>${p.name}${p.required?' *':''}</label>
+        <select id="param_${p.name}">${p.options.map(o=>`<option>${o}</option>`).join('')}</select></div>`;
+    }
+    return `<div class="form-group"><label>${p.name}${p.required?' *':''}</label>
+      <input type="${p.type==='number'?'number':'text'}" id="param_${p.name}" placeholder="${p.default||''}"></div>`;
+  }).join('');
+}
+
+function handleFiles(fileList) {
+  for (const f of fileList) selectedFiles.push(f);
+  renderFileList();
+  updateExecButton();
+}
+
+function renderFileList() {
+  const el = document.getElementById('fileList');
+  el.innerHTML = selectedFiles.map((f,i) => `
+    <div class="file-item">
+      <span>📄 ${f.name} (${(f.size/1024).toFixed(1)}KB)</span>
+      <button onclick="removeFile(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function removeFile(i) {
+  selectedFiles.splice(i, 1);
+  renderFileList();
+  updateExecButton();
+}
+
+function updateExecButton() {
+  const btn = document.getElementById('execBtn');
+  const hasFiles = selectedFiles.length > 0;
+  btn.disabled = !hasFiles;
+  btn.textContent = hasFiles ? `执行: ${currentFunction?.name}` : '请先选择文件';
+}
+
+function setupDragDrop() {
+  const dz = document.getElementById('dropZone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+}
+
+// ============================================================
+// Execute Function
+// ============================================================
+async function executeFunction() {
+  if (!currentFunction || selectedFiles.length === 0) return;
+  closeModal();
+  const resultOverlay = document.getElementById('resultOverlay');
+  resultOverlay.classList.add('show');
+  const progress = document.getElementById('progressFill');
+  const status = document.getElementById('resultStatus');
+  const area = document.getElementById('resultArea');
+  const footer = document.getElementById('resultFooter');
+  progress.style.width = '0%';
+  status.textContent = '准备中...';
+  area.classList.remove('show');
+  footer.style.display = 'none';
+
+  // Build FormData
+  const fd = new FormData();
+  selectedFiles.forEach(f => fd.append('file', f));
+
+  // Add params
+  if (currentFunction.params) {
+    for (const p of currentFunction.params) {
+      const el = document.getElementById('param_' + p.name);
+      if (el && el.value) fd.append(p.name, el.value);
+    }
+  }
+
+  try {
+    status.textContent = `正在调用: ${currentFunction.endpoint}`;
+    progress.style.width = '30%';
+
+    const resp = await fetch(spdfUrl + currentFunction.endpoint, {
+      method: 'POST',
+      body: fd
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`HTTP ${resp.status}: ${errText.substring(0,200)}`);
+    }
+
+    progress.style.width = '80%';
+    status.textContent = '处理完成！';
+
+    const contentType = resp.headers.get('Content-Type') || '';
+    const blob = await resp.blob();
+
+    if (contentType.includes('application/pdf') || contentType.includes('octet-stream')) {
+      // Download
+      const url = URL.createObjectURL(blob);
+      const dl = document.getElementById('downloadLink');
+      dl.href = url;
+      dl.download = 'result.pdf';
+      footer.style.display = 'flex';
+      status.textContent = `✅ 处理完成！文件已生成 (${(blob.size/1024).toFixed(1)}KB)`;
+    } else if (contentType.includes('json')) {
+      const data = await blob.text();
+      area.innerHTML = `<pre>${JSON.stringify(JSON.parse(data), null, 2)}</pre>`;
+    } else {
+      const text = await blob.text();
+      area.innerHTML = `<pre>${text.substring(0,2000)}</pre>`;
+    }
+    area.classList.add('show');
+    progress.style.width = '100%';
+
+  } catch(e) {
+    status.textContent = `❌ 错误: ${e.message}`;
+    area.innerHTML = `<pre style="color:var(--danger)">${e.stack || e.message}</pre>`;
+    area.classList.add('show');
+  }
+}
+
+function closeResult() {
+  document.getElementById('resultOverlay').classList.remove('show');
+}
+
+// Start
+init();
+</script>
+</body>
+</html>
