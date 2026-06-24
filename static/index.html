@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WorkBuddy PDF 工具箱</title>
+<title>意念 PDF 工具箱</title>
 <style>
 :root {
   --bg: #0f172a;
@@ -342,7 +342,7 @@ let categories = {};
 let selectedCategory = 'all';
 let selectedFiles = [];
 let currentFunction = null;
-let currentView = 'list';
+let currentView = 'grid';
 
 const ICONS = {
   merge:'🔗', 'split-pages':'✂️', rotate:'🔄', 'add-password':'🔒', 'img-to-pdf':'🖼️',
@@ -377,6 +377,7 @@ async function init() {
   await loadFunctions();
   renderTree();
   renderContent();
+  setView(currentView);
   checkStatus();
   setupDragDrop();
 }
@@ -431,7 +432,7 @@ function renderTree() {
     <span class="tree-badge">${allFunctions.length}</span>
   </div></div>`;
 
-  // Categories as folders
+  // Categories as folders (all expanded by default)
   for (const [cat, fns] of Object.entries(categories)) {
     const icon = CAT_ICONS[cat] || '📁';
     html += `<div class="tree-node">`;
@@ -441,7 +442,7 @@ function renderTree() {
       <span class="tree-label">${cat}</span>
       <span class="tree-badge">${fns.length}</span>
     </div>`;
-    html += `<div class="tree-children">`;
+    html += `<div class="tree-children open">`;
     fns.forEach(fn => {
       const fnIcon = ICONS[fn.id] || '📄';
       html += `<div class="tree-row ${selectedCategory===cat?'active':''}" onclick="event.stopPropagation(); selectCategory('${cat}'); openFunctionById('${fn.id}')">
