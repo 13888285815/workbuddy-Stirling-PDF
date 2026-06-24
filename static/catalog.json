@@ -1,0 +1,702 @@
+[
+  {
+    "label": "📖 文档阅读",
+    "children": [
+      {
+        "label": "示例文档",
+        "children": [
+          {
+            "title": "Stirling PDF 使用指南",
+            "pdf": "/docs/stirling-pdf-guide.pdf",
+            "size": "2.4 MB"
+          },
+          {
+            "title": "PDF 工具速查表",
+            "pdf": "/docs/quick-reference.pdf",
+            "size": "856 KB"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "label": "🔧 PDF 工具",
+    "children": [
+      {
+        "title": "合并 PDF",
+        "id": "merge",
+        "type": "tool",
+        "endpoint": "/api/pdf/merge",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "将多个 PDF 文件合并为一个"
+      },
+      {
+        "title": "拆分 PDF",
+        "id": "split",
+        "type": "tool",
+        "endpoint": "/api/pdf/split",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "将 PDF 按页面分割成多个文件"
+      },
+      {
+        "title": "PDF 转图片",
+        "id": "pdf-to-img",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdf-to-img",
+        "input_types": ["application/pdf"],
+        "output_type": "image/png",
+        "description": "将 PDF 页面转换为图片"
+      },
+      {
+        "title": "图片转 PDF",
+        "id": "img-to-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/img-to-pdf",
+        "input_types": ["image/png","image/jpeg"],
+        "output_type": "application/pdf",
+        "description": "将图片合并为 PDF 文件"
+      },
+      {
+        "title": "压缩 PDF",
+        "id": "optimize-document",
+        "type": "tool",
+        "endpoint": "/api/pdf/optimize",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "减小 PDF 文件大小"
+      },
+      {
+        "title": "添加水印",
+        "id": "add-watermark",
+        "type": "tool",
+        "endpoint": "/api/pdf/watermark",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "为 PDF 添加文字或图片水印"
+      },
+      {
+        "title": "旋转 PDF",
+        "id": "rotate-pages",
+        "type": "tool",
+        "endpoint": "/api/pdf/rotate",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "旋转 PDF 页面方向"
+      },
+      {
+        "title": "删除页面",
+        "id": "delete-page",
+        "type": "tool",
+        "endpoint": "/api/pdf/delete-page",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "删除 PDF 中的指定页面"
+      },
+      {
+        "title": "OCR 识别",
+        "id": "add-ocr",
+        "type": "tool",
+        "endpoint": "/api/pdf/ocr",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "对扫描版 PDF 进行 OCR 文字识别"
+      },
+      {
+        "title": "添加密码",
+        "id": "encrypt-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/encrypt",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "为 PDF 添加打开密码"
+      },
+      {
+        "title": "移除密码",
+        "id": "decrypt-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/decrypt",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "移除 PDF 密码保护"
+      },
+      {
+        "title": "PDF 信息",
+        "id": "get-info",
+        "type": "tool",
+        "endpoint": "/api/pdf/info",
+        "input_types": ["application/pdf"],
+        "output_type": "application/json",
+        "description": "查看 PDF 元数据和统计信息"
+      },
+      {
+        "title": "PDF 转 Word",
+        "id": "pdf-to-word",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdf-to-word",
+        "input_types": ["application/pdf"],
+        "output_type": "application/vnd.word",
+        "description": "将 PDF 转换为 Word 文档"
+      },
+      {
+        "title": "PDF 转 Markdown",
+        "id": "pdf-to-markdown",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdf-to-markdown",
+        "input_types": ["application/pdf"],
+        "output_type": "text/markdown",
+        "description": "将 PDF 转换为 Markdown 文本"
+      },
+      {
+        "title": "PDF 转 CSV",
+        "id": "pdf-to-csv",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdf-to-csv",
+        "input_types": ["application/pdf"],
+        "output_type": "text/csv",
+        "description": "从 PDF 中提取表格数据为 CSV"
+      },
+      {
+        "title": "添加页码",
+        "id": "add-page-numbers",
+        "type": "tool",
+        "endpoint": "/api/pdf/page-numbers",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "为 PDF 页面添加页码"
+      },
+      {
+        "title": "添加附件",
+        "id": "add-attachments",
+        "type": "tool",
+        "endpoint": "/api/pdf/attach",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "在 PDF 中添加附件"
+      },
+      {
+        "title": "提取图片",
+        "id": "extract-images",
+        "type": "tool",
+        "endpoint": "/api/pdf/extract-images",
+        "input_types": ["application/pdf"],
+        "output_type": "image/*",
+        "description": "从 PDF 中提取所有嵌入的图片"
+      },
+      {
+        "title": "修复 PDF",
+        "id": "repair-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/repair",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "修复损坏的 PDF 文件"
+      },
+      {
+        "title": "自动重命名",
+        "id": "auto-rename",
+        "type": "tool",
+        "endpoint": "/api/pdf/auto-rename",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "根据内容自动重命名 PDF"
+      },
+      {
+        "title": "自动拆分",
+        "id": "auto-split",
+        "type": "tool",
+        "endpoint": "/api/pdf/auto-split",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "根据章节或大小自动拆分 PDF"
+      },
+      {
+        "title": "添加印章",
+        "id": "add-stamp",
+        "type": "tool",
+        "endpoint": "/api/pdf/stamp",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "在 PDF 上添加印章"
+      },
+      {
+        "title": "添加图片",
+        "id": "add-image",
+        "type": "tool",
+        "endpoint": "/api/pdf/add-image",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "在 PDF 页面上添加图片"
+      },
+      {
+        "title": "删除图片",
+        "id": "remove-image",
+        "type": "tool",
+        "endpoint": "/api/pdf/remove-image",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "从 PDF 中删除图片"
+      },
+      {
+        "title": "删除空白页",
+        "id": "remove-blanks",
+        "type": "tool",
+        "endpoint": "/api/pdf/remove-blanks",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "自动删除 PDF 中的空白页面"
+      },
+      {
+        "title": "平面化 PDF",
+        "表单": "flatten",
+        "type": "tool",
+        "endpoint": "/api/pdf/flatten",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "将表单字段扁平化为静态内容"
+      },
+      {
+        "title": "脱敏/红黑",
+        "id": "redact",
+        "type": "tool",
+        "endpoint": "/api/pdf/redact",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "对敏感信息进行黑色遮挡"
+      },
+      {
+        "title": "清理文档",
+        "id": "sanitize-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/sanitize",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "清理 PDF 中的脚本、隐藏文本等"
+      },
+      {
+        "title": "校验签名",
+        "id": "verify-signature",
+        "type": "tool",
+        "endpoint": "/api/pdf/verify-signature",
+        "input_types": ["application/pdf"],
+        "output_type": "application/json",
+        "description": "验证 PDF 数字签名"
+      },
+      {
+        "title": "提取扫描页",
+        "id": "extract-scans",
+        "type": "tool",
+        "endpoint": "/api/pdf/extract-scans",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "从混合文档中提取扫描页面"
+      },
+      {
+        "title": "提取文本",
+        "id": "extract-text",
+        "type": "tool",
+        "endpoint": "/api/pdf/extract-text",
+        "input_types": ["application/pdf"],
+        "output_type": "text/plain",
+        "description": "提取 PDF 中的所有文本内容"
+      },
+      {
+        "title": "提取书签",
+        "id": "extract-bookmarks",
+        "type": "tool",
+        "endpoint": "/api/pdf/extract-bookmarks",
+        "input_types": ["application/pdf"],
+        "output_type": "text/plain",
+        "description": "导出 PDF 书签为文本文件"
+      },
+      {
+        "title": "插入书签",
+        "id": "insert-bookmarks",
+        "type": "tool",
+        "endpoint": "/api/pdf/insert-bookmarks",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "从文本文件导入书签"
+      },
+      {
+        "title": "更新元数据",
+        "id": "update-metadata",
+        "type": "tool",
+        "endpoint": "/api/pdf/metadata",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "更新 PDF 标题、作者等元数据"
+      },
+      {
+        "title": "提取元数据",
+        "id": "extract-metadata",
+        "type": "tool",
+        "endpoint": "/api/pdf/extract-metadata",
+        "input_types": ["application/pdf"],
+        "output_type": "application/json",
+        "description": "导出 PDF 元数据为 JSON"
+      },
+      {
+        "title": "PDF/A 转换",
+        "id": "pdf-to-pdfa",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdfa",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "将 PDF 转换为长期存档格式 PDF/A"
+      },
+      {
+        "title": "修复签名",
+        "id": "fix-signature",
+        "type": "tool",
+        "endpoint": "/api/pdf/fix-signature",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "修复数字签名问题"
+      },
+      {
+        "title": "解锁 PDF",
+        "id": "unlock-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/unlock",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "移除 PDF 权限限制"
+      },
+      {
+        "title": "HTML 转 PDF",
+        "id": "html-to-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/html-to-pdf",
+        "input_types": ["text/html"],
+        "output_type": "application/pdf",
+        "description": "将 HTML 文件转换为 PDF"
+      },
+      {
+        "title": "URL 转 PDF",
+        "id": "url-to-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/url-to-pdf",
+        "input_types": ["text/url"],
+        "output_type": "application/pdf",
+        "description": "将网页 URL 保存为 PDF"
+      },
+      {
+        "title": "Markdown 转 PDF",
+        "id": "md-to-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/md-to-pdf",
+        "input_types": ["text/markdown"],
+        "output_type": "application/pdf",
+        "description": "将 Markdown 文件转换为 PDF"
+      },
+      {
+        "title": "XML 转 PDF",
+        "id": "xml-to-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/xml-to-pdf",
+        "input_types": ["application/xml"],
+        "output_type": "application/pdf",
+        "description": "将 XML 文件转换为 PDF"
+      },
+      {
+        "title": "PDF 转 XML",
+        "id": "pdf-to-xml",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdf-to-xml",
+        "input_types": ["application/pdf"],
+        "output_type": "application/xml",
+        "description": "将 PDF 转换为 XML 格式"
+      },
+      {
+        "title": "PDF 转 HTML",
+        "id": "pdf-to-html",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdf-to-html",
+        "input_types": ["application/pdf"],
+        "output_type": "text/html",
+        "description": "将 PDF 转换为 HTML 网页"
+      },
+      {
+        "title": "PDF 转文本",
+        "id": "pdf-to-text",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdf-to-text",
+        "input_types": ["application/pdf"],
+        "output_type": "text/plain",
+        "description": "将 PDF 转换为纯文本"
+      },
+      {
+        "title": "PDF 转演示文稿",
+        "id": "pdf-to-presentation",
+        "type": "tool",
+        "endpoint": "/api/pdf/pdf-to-presentation",
+        "input_types": ["application/pdf"],
+        "output_type": "application/vnd.powerpoint",
+        "description": "将 PDF 转换为 PowerPoint 演示文稿"
+      },
+      {
+        "title": "文件转 PDF",
+        "id": "file-to-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/file-to-pdf",
+        "input_types": ["*/*"],
+        "output_type": "application/pdf",
+        "description": "将任意文件转换为 PDF"
+      },
+      {
+        "title": "电子书转 PDF",
+        "id": "ebook-to-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/ebook-to-pdf",
+        "input_types": ["application/epub","application/mobi"],
+        "output_type": "application/pdf",
+        "description": "将电子书格式转换为 PDF"
+      },
+      {
+        "title": "拆分大小",
+        "id": "split-by-size",
+        "type": "tool",
+        "endpoint": "/api/pdf/split-size",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按文件大小拆分 PDF"
+      },
+      {
+        "title": "拆分章节",
+        "id": "split-by-chapter",
+        "type": "tool",
+        "endpoint": "/api/pdf/split-chapter",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按章节标题拆分 PDF"
+      },
+      {
+        "title": "拆分范围",
+        "id": "split-by-range",
+        "type": "tool",
+        "endpoint": "/api/pdf/split-range",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按页面范围拆分 PDF"
+      },
+      {
+        "title": "裁剪页面",
+        "id": "crop-pages",
+        "type": "tool",
+        "endpoint": "/api/pdf/crop",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "裁剪 PDF 页面的边距"
+      },
+      {
+        "title": "调整大小",
+        "id": "resize-pages",
+        "type": "tool",
+        "endpoint": "/api/pdf/resize",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "调整 PDF 页面尺寸"
+      },
+      {
+        "title": "叠加 PDF",
+        "id": "overlay-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/overlay",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "将两个 PDF 叠加合并"
+      },
+      {
+        "title": "排序页面",
+        "id": "organize-pages",
+        "type": "tool",
+        "endpoint": "/api/pdf/organize",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "重新排序 PDF 页面"
+      },
+      {
+        "title": "单页布局",
+        "id": "single-page-layout",
+        "type": "tool",
+        "endpoint": "/api/pdf/single-page",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "将多页合并为单页布局"
+      },
+      {
+        "title": "多页布局",
+        "id": "multi-page-layout",
+        "type": "tool",
+        "endpoint": "/api/pdf/multi-page",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "将多页 PDF 排版为单页"
+      },
+      {
+        "title": "解压缩",
+        "id": "decompress-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/decompress",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "解压缩 PDF 内部数据"
+      },
+      {
+        "title": "添加证书签名",
+        "id": "certificate-sign",
+        "type": "tool",
+        "endpoint": "/api/pdf/cert-sign",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "使用证书对 PDF 签名"
+      },
+      {
+        "title": "移除证书签名",
+        "id": "remove-certificate",
+        "type": "tool",
+        "endpoint": "/api/pdf/remove-cert",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "移除 PDF 上的证书签名"
+      },
+      {
+        "title": "过滤器-大小",
+        "id": "filter-size",
+        "type": "tool",
+        "endpoint": "/api/pdf/filter-size",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按文件大小过滤 PDF"
+      },
+      {
+        "title": "过滤器-页数",
+        "id": "filter-page-count",
+        "type": "tool",
+        "endpoint": "/api/pdf/filter-pages",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按页数过滤 PDF"
+      },
+      {
+        "title": "过滤器-页面尺寸",
+        "id": "filter-page-size",
+        "type": "tool",
+        "endpoint": "/api/pdf/filter-page-size",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按页面尺寸过滤 PDF"
+      },
+      {
+        "title": "过滤器-页面旋转",
+        "id": "filter-page-rotation",
+        "type": "tool",
+        "endpoint": "/api/pdf/filter-rotation",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按页面旋转角度过滤 PDF"
+      },
+      {
+        "title": "过滤器-文本",
+        "id": "filter-text",
+        "type": "tool",
+        "endpoint": "/api/pdf/filter-text",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按文本内容过滤 PDF"
+      },
+      {
+        "title": "过滤器-图片",
+        "id": "filter-image",
+        "type": "tool",
+        "endpoint": "/api/pdf/filter-image",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "按图片内容过滤 PDF"
+      },
+      {
+        "title": "打印预览",
+        "id": "print-preview",
+        "type": "tool",
+        "endpoint": "/api/pdf/print-preview",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "生成打印预览版本"
+      },
+      {
+        "title": "打印标记",
+        "id": "print-mark",
+        "type": "tool",
+        "endpoint": "/api/pdf/print-mark",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "添加打印标记和裁切线"
+      },
+      {
+        "title": "页面排列",
+        "id": "page-layout",
+        "type": "tool",
+        "endpoint": "/api/pdf/page-layout",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "重新排列 PDF 页面布局"
+      },
+      {
+        "title": "线性化",
+        "id": "linearize-pdf",
+        "type": "tool",
+        "endpoint": "/api/pdf/linearize",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "优化 PDF 以便 Web 浏览"
+      },
+      {
+        "title": "显示 JavaScript",
+        "id": "show-javascript",
+        "type": "tool",
+        "endpoint": "/api/pdf/show-js",
+        "input_types": ["application/pdf"],
+        "output_type": "text/plain",
+        "description": "提取并显示 PDF 中的 JavaScript"
+      },
+      {
+        "title": "自动拆分",
+        "id": "auto-splitter",
+        "type": "tool",
+        "endpoint": "/api/pdf/auto-splitter",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "自动检测文档边界并拆分"
+      },
+      {
+        "title": "预处理邮件",
+        "id": "prepare-email",
+        "type": "tool",
+        "endpoint": "/api/pdf/prepare-email",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "预处理 PDF 以便邮件发送"
+      },
+      {
+        "title": "预出版 sanitization",
+        "id": "pre-publish-sanitize",
+        "type": "tool",
+        "endpoint": "/api/pdf/pre-publish",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "预出版前的文档清理"
+      },
+      {
+        "title": "PDF 修复",
+        "id": "repair-pdf-full",
+        "type": "tool",
+        "endpoint": "/api/pdf/repair-full",
+        "input_types": ["application/pdf"],
+        "output_type": "application/pdf",
+        "description": "全面修复损坏的 PDF 文件"
+      }
+    ]
+  }
+]
