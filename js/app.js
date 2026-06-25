@@ -373,6 +373,7 @@ function getToolOptions(tool) {
 
 // ══ 工具文件处理 ══
 let toolFiles = [];
+let _gridItems = []; // grid/list 当前渲染项（供 onclick 查找）
 
 function handleToolFiles(files) {
   toolFiles = Array.from(files).filter(f => f.type === 'application/pdf' || f.name.endsWith('.pdf'));
@@ -1054,7 +1055,9 @@ function renderGrid(kw) {
     el.innerHTML = '<div class="empty-state" style="position:static;height:200px"><i class="fas fa-search" style="font-size:32px"></i><p style="font-size:13px">没有匹配的工具</p></div>';
     return;
   }
-  el.innerHTML = items.map(item => {
+  // 保存当前渲染项供 onclick 查找
+  _gridItems = items.map((item, i) => ({ ...item, _idx: i }));
+  el.innerHTML = items.map((item, i) => {
     const type = getItemType(item);
     const icon = type === 'doc' ? 'fa-file-alt' : (TOOL_ICONS[item.id] || DEFAULT_TOOL_ICON);
     const name = item.title || item.label || '';
@@ -1062,7 +1065,7 @@ function renderGrid(kw) {
     const iconColor = type === 'doc' ? '#6bb3ff' : type === 'tool' ? 'var(--primary)' : '#ffd166';
     const badge = type === 'doc' ? '文档' : '工具';
     return `
-      <div class="tool-card" onclick="selectItem(${item._idx || 0}, this)" data-idx="${item._idx || 0}">
+      <div class="tool-card" onclick="selectItemByIdx(${i})">
         <div class="tool-badge">${badge}</div>
         <div class="tool-icon" style="color:${iconColor}"><i class="fas ${icon}"></i></div>
         <div class="tool-name">${highlightMatch(name, kw)}</div>
@@ -1070,9 +1073,6 @@ function renderGrid(kw) {
       </div>
     `;
   }).join('');
-
-  // 给 items 加上 _idx 用于 onclick
-  items.forEach((item, i) => { item._idx = i; });
 }
 
 function renderList(kw) {
@@ -1083,13 +1083,14 @@ function renderList(kw) {
     el.innerHTML = '<div class="empty-state" style="position:static;height:200px"><i class="fas fa-search" style="font-size:32px"></i><p style="font-size:13px">没有匹配的工具</p></div>';
     return;
   }
-  el.innerHTML = items.map(item => {
+  _gridItems = items.map((item, i) => ({ ...item, _idx: i }));
+  el.innerHTML = items.map((item, i) => {
     const type = getItemType(item);
     const icon = type === 'doc' ? 'fa-file-alt' : (TOOL_ICONS[item.id] || DEFAULT_TOOL_ICON);
     const iconColor = type === 'doc' ? '#6bb3ff' : 'var(--primary)';
     const cat = item._cat || '';
     return `
-      <div class="tool-row" onclick="selectItemById('${item.id || item._idx}')">
+      <div class="tool-row" onclick="selectItemByIdx(${i})">
         <div class="tool-row-icon" style="color:${iconColor}"><i class="fas ${icon}"></i></div>
         <div class="tool-row-name">${highlightMatch(item.title || item.label || '', kw)}</div>
         <div class="tool-row-desc">${escapeHtml(item.description || '')}</div>
@@ -1099,25 +1100,13 @@ function renderList(kw) {
   }).join('');
 }
 
-// 全局选择（供 grid onclick 使用）
-let _globalItems = [];
-function selectItem(data, el) {
-  const items = getAllItems(filteredCatalog).filter(matchesFilter);
-  const idx = items.indexOf(data);
-  if (idx >= 0) {
-    // 直接用 item
-    selectItem2(data);
-  }
-}
-function selectItem2(item) {
+// 通过索引查找并选中工具（grid/list onclick 使用）
+function selectItemByIdx(idx) {
+  const item = _gridItems[idx];
+  if (!item) return;
   const type = getItemType(item);
   if (type === 'tool') openToolPanel(item);
   else if (type === 'doc') openDoc(item);
-}
-function selectItemById(id) {
-  const items = getAllItems(filteredCatalog).filter(matchesFilter);
-  const item = items.find(it => (it.id || it._idx) == id);
-  if (item) selectItem2(item);
 }
 
 // ══ 上传文件 ══
@@ -1165,6 +1154,11 @@ function confirmUpload() {
   // 将上传的文件作为工具输入
   toolFiles = [...pendingUploadFiles];
   closeUploadModal();
+  // 如果工具面板可见，同步更新文件列表和按钮状态
+  if (selectedTool && $('toolPanel').style.display !== 'none') {
+    renderToolFileList();
+    updateRunBtn();
+  }
   showToast(`已添加 ${pendingUploadFiles.length} 个文件`, 'success');
 }
 
