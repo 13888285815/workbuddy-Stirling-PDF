@@ -59,7 +59,7 @@ const CAT_ICONS = ['fa-folder-open', 'fa-tools', 'fa-shield-alt', 'fa-exchange-a
 // ══ 工具类型判断 ══
 function getItemType(item) {
   if (item.url || item.pdf) return 'doc';
-  if (item.endpoint || item.type) return 'tool';
+  if (item.id && (item.endpoint || item.type || item.title)) return 'tool';
   return 'folder';
 }
 
@@ -114,30 +114,54 @@ function renderTree(items) {
   const frag = document.createDocumentFragment();
   items.forEach(cat => {
     const catIcon = CAT_ICONS[0] || 'fa-folder-open';
-    const node = createTreeNode(cat.label, 1, cat.children?.length || 0, null, catIcon);
-    const ch = document.createElement('div');
-    ch.className = 'tree-children open';
-    (cat.children || []).forEach(grp => {
-      const gNode = createTreeNode(grp.label, 2, grp.children?.length || 0, null, 'fa-layer-group');
-      const gCh = document.createElement('div');
-      gCh.className = 'tree-children';
-      (grp.children || []).forEach(item => {
-        const type = getItemType(item);
-        const icon = type === 'doc' ? 'fa-file-alt' : type === 'tool' ? (TOOL_ICONS[item.id] || DEFAULT_TOOL_ICON) : 'fa-folder';
-        const lNode = createTreeNode(item.title || item.label, 3, 0, item, icon, type);
-        gCh.appendChild(lNode);
+    const childCount = (cat.children || []).length;
+    // 判断子项类型：第一层是分组还是工具
+    const firstChild = cat.children?.[0];
+    const childIsGroup = firstChild && (firstChild.label || firstChild.title) && firstChild.children;
+    const childIsTool = firstChild && firstChild.id && !firstChild.children;
+
+    if (childIsTool) {
+      // 扁平列表：直接渲染为叶子节点（工具直接挂载在分类下）
+      const node = createTreeNode(cat.label, 1, childCount, null, catIcon);
+      const ch = document.createElement('div');
+      ch.className = 'tree-children open';
+      (cat.children || []).forEach(tool => {
+        const icon = TOOL_ICONS[tool.id] || DEFAULT_TOOL_ICON;
+        const leaf = createTreeNode(tool.title || tool.label || tool.id, 2, 0, tool, icon, 'tool');
+        ch.appendChild(leaf);
       });
-      gNode.appendChild(gCh);
-      gNode.querySelector('.tree-label').addEventListener('click', e => {
-        e.stopPropagation(); toggleChildren(gCh, gNode);
+      node.appendChild(ch);
+      node.querySelector('.tree-label').addEventListener('click', e => {
+        e.stopPropagation(); toggleChildren(ch, node);
       });
-      ch.appendChild(gNode);
-    });
-    node.appendChild(ch);
-    node.querySelector('.tree-label').addEventListener('click', e => {
-      e.stopPropagation(); toggleChildren(ch, node);
-    });
-    frag.appendChild(node);
+      frag.appendChild(node);
+    } else {
+      // 分组结构：两层分类
+      const node = createTreeNode(cat.label, 1, childCount, null, catIcon);
+      const ch = document.createElement('div');
+      ch.className = 'tree-children open';
+      (cat.children || []).forEach(grp => {
+        const gNode = createTreeNode(grp.label, 2, grp.children?.length || 0, null, 'fa-layer-group');
+        const gCh = document.createElement('div');
+        gCh.className = 'tree-children';
+        (grp.children || []).forEach(item => {
+          const type = getItemType(item);
+          const icon = type === 'doc' ? 'fa-file-alt' : type === 'tool' ? (TOOL_ICONS[item.id] || DEFAULT_TOOL_ICON) : 'fa-folder';
+          const lNode = createTreeNode(item.title || item.label, 3, 0, item, icon, type);
+          gCh.appendChild(lNode);
+        });
+        gNode.appendChild(gCh);
+        gNode.querySelector('.tree-label').addEventListener('click', e => {
+          e.stopPropagation(); toggleChildren(gCh, gNode);
+        });
+        ch.appendChild(gNode);
+      });
+      node.appendChild(ch);
+      node.querySelector('.tree-label').addEventListener('click', e => {
+        e.stopPropagation(); toggleChildren(ch, node);
+      });
+      frag.appendChild(node);
+    }
   });
   wrap.appendChild(frag);
 }
@@ -905,19 +929,36 @@ function filterCatalog(nodes, q) {
   const out = [];
   nodes.forEach(n1 => {
     const c1 = { label: n1.label, children: [] };
-    (n1.children || []).forEach(n2 => {
-      const c2 = { label: n2.label, children: [] };
-      (n2.children || []).forEach(item => {
-        const title = (item.title || item.label || '').toLowerCase();
-        const desc = (item.description || '').toLowerCase();
-        const id = (item.id || '').toLowerCase();
-        if (title.includes(q) || desc.includes(q) || id.includes(q) || (n2.label || '').toLowerCase().includes(q) || (n1.label || '').toLowerCase().includes(q)) {
-          c2.children.push(item);
+    const firstChild = n1.children?.[0];
+    const childIsTool = firstChild && firstChild.id && !firstChild.children;
+
+    if (childIsTool) {
+      // 扁平结构：直接过滤工具
+      (n1.children || []).forEach(tool => {
+        const title = (tool.title || tool.label || '').toLowerCase();
+        const desc = (tool.description || '').toLowerCase();
+        const id = (tool.id || '').toLowerCase();
+        if (title.includes(q) || desc.includes(q) || id.includes(q)) {
+          c1.children.push(tool);
         }
       });
-      if (c2.children.length) c1.children.push(c2);
-    });
-    if (c1.children.length) out.push(c1);
+      if (c1.children.length) out.push(c1);
+    } else {
+      // 分组结构
+      (n1.children || []).forEach(n2 => {
+        const c2 = { label: n2.label, children: [] };
+        (n2.children || []).forEach(item => {
+          const title = (item.title || item.label || '').toLowerCase();
+          const desc = (item.description || '').toLowerCase();
+          const id = (item.id || '').toLowerCase();
+          if (title.includes(q) || desc.includes(q) || id.includes(q) || (n2.label || '').toLowerCase().includes(q) || (n1.label || '').toLowerCase().includes(q)) {
+            c2.children.push(item);
+          }
+        });
+        if (c2.children.length) c1.children.push(c2);
+      });
+      if (c1.children.length) out.push(c1);
+    }
   });
   return out;
 }
