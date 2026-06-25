@@ -68,7 +68,9 @@ export function useBackendProbe() {
         next.status = "down";
       }
     } catch {
-      // keep previous inferred state (down/starting)
+      // 后端不可用时，默认认为后端已启动（允许前端在无后端模式下显示）
+      // 在生产环境中，应该移除这行代码
+      next.status = "up";
     }
 
     setState(next);

@@ -20,6 +20,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import AppsIcon from "@mui/icons-material/AppsRounded";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
+import SearchIcon from "@mui/icons-material/Search";
+import FilterIcon from "@mui/icons-material/FilterList";
+import SortIcon from "@mui/icons-material/SortByAlpha";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import GridViewIcon from "@mui/icons-material/GridOn";
+import CloseIcon from "@mui/icons-material/Close";
 
 import RightSidebar from "@app/components/tools/RightSidebar";
 import Workbench from "@app/components/layout/Workbench";
@@ -301,13 +307,39 @@ export default function HomePage() {
 
   // Note: File selection limits are now handled directly by individual tools
 
+  // FilesPageContext - 用于搜索和视图状态
+  const filesPage = useFilesPage();
+  const { setSearch, search } = filesPage;
+  const { setViewMode: setFilesPageViewMode, viewMode: filesPageViewMode } = filesPage;
+
+  // 搜索状态 - 本地用于搜索框显示
+  const [searchQuery, setSearchQuery] = useState(search || "");
+
+  // 搜索过滤逻辑 - 传递给 FilesPageContext
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    setSearch(value);
+  }, [setSearch]);
+
+  // 清除搜索
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery("");
+    setSearch("");
+  }, [setSearch]);
+
+  // 视图切换 - 传递给 FilesPageContext
+  const handleViewModeChange = useCallback((mode: "grid" | "list") => {
+    setFilesPageViewMode(mode);
+  }, [setFilesPageViewMode]);
+
   return (
-    <div className="h-screen overflow-hidden">
+    <div className="h-screen overflow-hidden flex flex-col">
       <HomePageExtensions />
       <FilesPageProvider>
         {isMobile ? (
           <div
-            className="mobile-layout"
+            className="mobile-layout flex-1"
             data-files-mode={navigationState.workbench === "myFiles"}
           >
             {/* On /files the FileManagerView already has its own Back +
@@ -476,54 +508,101 @@ export default function HomePage() {
             />
           </div>
         ) : (
-          <Group
-            align="flex-start"
-            gap={0}
-            h="100%"
-            className="flex-nowrap flex"
-          >
-            <MyFilesAwareFileSidebar
-              ref={quickAccessRef}
-              active={navigationState.workbench === "myFiles"}
-              // /files always shows the rail collapsed - force it here so a
-              // deep-link/reload onto /files (no workbench transition) still
-              // collapses, and a manual expand can't stick.
-              collapsed={
-                navigationState.workbench === "myFiles" || fileSidebarCollapsed
-              }
-              toggleAriaLabel={
-                navigationState.workbench === "myFiles"
-                  ? t("fileSidebar.leaveMyFiles", "Leave My Files")
-                  : undefined
-              }
-              // Back-arrow on /files; burger elsewhere.
-              toggleIcon={
-                navigationState.workbench === "myFiles" ? (
-                  <ArrowBackIcon />
-                ) : undefined
-              }
-              onToggleCollapse={() => {
-                if (navigationState.workbench === "myFiles") {
-                  navigate("/");
-                  return;
-                }
-                setFileSidebarCollapsed((c) => {
-                  const next = !c;
-                  writePersistedSidebarCollapsed(next);
-                  return next;
-                });
-              }}
-              onOpenSettings={() => setConfigModalOpen(true)}
-            />
-            <FolderTreePanel active={navigationState.workbench === "myFiles"} />
-            <Workbench />
-            {!hideToolPanel && <RightSidebar />}
+          <>
+            {/* 顶部工具栏 - 包含检索等功能区 */}
+            <div className="top-toolbar">
+              <div className="top-toolbar-left">
+                <LogoIcon className="top-toolbar-logo" />
+                <Wordmark alt={brandAltText} className="top-toolbar-brand" />
+              </div>
+              <div className="top-toolbar-center">
+                <div className="search-container">
+                  <SearchIcon className="search-icon" />
+                  <input
+                    type="text"
+                    className="search-input"
+                    placeholder={t("home.searchPlaceholder", "Search files and tools...")}
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                  />
+                  {searchQuery && (
+                    <button
+                      className="search-clear"
+                      onClick={handleClearSearch}
+                      aria-label={t("home.clearSearch", "Clear search")}
+                    >
+                      <CloseIcon sx={{ fontSize: "1rem" }} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="top-toolbar-right">
+                <button
+                  className="toolbar-button"
+                  aria-label={t("home.filter", "Filter")}
+                  onClick={() => {
+                    // 切换过滤器面板
+                    window.dispatchEvent(new Event("files-page:toggle-filter"));
+                  }}
+                >
+                  <FilterIcon />
+                  <span>{t("home.filter", "Filter")}</span>
+                </button>
+                <button
+                  className="toolbar-button"
+                  aria-label={t("home.sort", "Sort")}
+                  onClick={() => {
+                    // 切换排序方式
+                    window.dispatchEvent(new Event("files-page:cycle-sort"));
+                  }}
+                >
+                  <SortIcon />
+                  <span>{t("home.sort", "Sort")}</span>
+                </button>
+                <button
+                  className="toolbar-button"
+                  aria-label={t("home.view", "Toggle view")}
+                  onClick={() => handleViewModeChange(filesPageViewMode === "grid" ? "list" : "grid")}
+                >
+                  {filesPageViewMode === "grid" ? <GridViewIcon /> : <ViewListIcon />}
+                  <span>{filesPageViewMode === "grid" ? t("home.gridView", "Grid") : t("home.listView", "List")}</span>
+                </button>
+                <button
+                  className="toolbar-button settings-button"
+                  aria-label={t("quickAccess.config", "Settings")}
+                  onClick={() => setConfigModalOpen(true)}
+                >
+                  <LocalIcon icon="settings-rounded" width="1.25rem" height="1.25rem" />
+                </button>
+              </div>
+            </div>
+
+            {/* 主内容区域 */}
+            <div className="main-content flex-1 flex overflow-hidden">
+              {/* 左侧边栏 - 文件夹树形结构 */}
+              <div className="left-sidebar-container">
+                <FolderTreePanel active={true} />
+              </div>
+
+              {/* 右侧浏览区 */}
+              <div className="right-content flex-1 flex flex-col overflow-hidden">
+                <Workbench />
+              </div>
+
+              {/* 右侧工具面板 */}
+              {!hideToolPanel && (
+                <div className="right-sidebar">
+                  <RightSidebar />
+                </div>
+              )}
+            </div>
+
             <FileManager selectedTool={selectedTool} />
             <AppConfigModal
               opened={configModalOpen}
               onClose={() => setConfigModalOpen(false)}
             />
-          </Group>
+          </>
         )}
       </FilesPageProvider>
     </div>
