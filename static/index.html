@@ -3,1191 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>意念 PDF 工具箱</title>
-<style>
-:root {
-  --bg: #0f172a;
-  --sidebar-bg: #1e293b;
-  --panel-bg: #1e293b;
-  --card-bg: #334155;
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --accent: #3b82f6;
-  --accent-light: #60a5fa;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --border: #334155;
-  --border-light: #475569;
-  --radius: 6px;
-  --tree-indent: 18px;
-  --sidebar-width: 280px;
-  --top-bar-height: 52px;
-}
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-
-/* ===== TOP BAR ===== */
-.topbar {
-  height: var(--top-bar-height); background: var(--sidebar-bg); border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding: 0 20px; gap: 16px; flex-shrink: 0;
-}
-.topbar-brand { font-size: 16px; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 8px; }
-.topbar-brand span { font-size: 20px; }
-.search-box {
-  flex: 1; max-width: 480px; position: relative;
-}
-.search-box input {
-  width: 100%; padding: 8px 12px 8px 36px; background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: var(--radius); color: var(--text); font-size: 13px; outline: none; transition: border-color 0.2s;
-}
-.search-box input:focus { border-color: var(--accent); }
-.search-box::before {
-  content: '\1F50D'; position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-  font-size: 14px; pointer-events: none;
-}
-.topbar-actions { display: flex; gap: 8px; margin-left: auto; }
-.topbar-btn {
-  padding: 6px 14px; border-radius: var(--radius); border: 1px solid var(--border);
-  background: var(--card-bg); color: var(--text); font-size: 12px; cursor: pointer;
-  transition: background 0.15s; display: flex; align-items: center; gap: 4px;
-}
-.topbar-btn:hover { background: var(--border-light); }
-.topbar-btn.active { background: var(--accent); border-color: var(--accent); }
-
-/* ===== MAIN LAYOUT ===== */
-.main { flex: 1; display: flex; overflow: hidden; }
-
-/* ===== LEFT TREE PANEL ===== */
-.sidebar {
-  width: var(--sidebar-width); background: var(--panel-bg); border-right: 1px solid var(--border);
-  display: flex; flex-direction: column; flex-shrink: 0; transition: transform 0.25s ease;
-}
-.sidebar-header {
-  padding: 12px 16px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; font-size: 11px;
-  text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);
-}
-.sidebar-header button { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 14px; }
-.sidebar-header button:hover { color: var(--text); }
-.sidebar-content { flex: 1; overflow-y: auto; padding: 8px 0; }
-
-/* Tree nodes */
-.tree-node { user-select: none; }
-.tree-row {
-  display: flex; align-items: center; padding: 4px 16px 4px 0; cursor: pointer;
-  font-size: 13px; transition: background 0.1s; white-space: nowrap;
-}
-.tree-row:hover { background: rgba(255,255,255,0.04); }
-.tree-row.active { background: rgba(59,130,246,0.15); color: var(--accent-light); }
-.tree-toggle {
-  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
-  font-size: 10px; color: var(--text-muted); transition: transform 0.15s; flex-shrink: 0;
-}
-.tree-toggle.open { transform: rotate(90deg); }
-.tree-toggle.leaf { visibility: hidden; }
-.tree-icon { margin-right: 6px; font-size: 14px; flex-shrink: 0; }
-.tree-label { flex: 1; overflow: hidden; text-overflow: ellipsis; }
-.tree-badge {
-  font-size: 10px; padding: 1px 6px; border-radius: 8px;
-  background: rgba(255,255,255,0.08); color: var(--text-muted); margin-left: 6px;
-}
-.tree-children { display: none; }
-.tree-children.open { display: block; }
-.tree-children .tree-row { padding-left: calc(16px + var(--depth) * var(--tree-indent)); }
-
-/* ===== RIGHT CONTENT ===== */
-.content-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-/* ===== PDF VIEWER ===== */
-.pdf-viewer-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.pdf-toolbar {
-  padding: 8px 16px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 10px; flex-shrink: 0; background: var(--sidebar-bg);
-}
-.pdf-toolbar-btn {
-  padding: 4px 10px; border-radius: 4px; border: 1px solid var(--border);
-  background: var(--card-bg); color: var(--text); font-size: 12px; cursor: pointer;
-  transition: background 0.15s; display: flex; align-items: center; gap: 4px;
-}
-.pdf-toolbar-btn:hover { background: var(--border-light); }
-.pdf-toolbar-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.page-nav { display: flex; align-items: center; gap: 6px; font-size: 12px; }
-.page-nav input {
-  width: 50px; padding: 3px 6px; background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: 4px; color: var(--text); font-size: 12px; text-align: center; outline: none;
-}
-.page-nav input:focus { border-color: var(--accent); }
-.zoom-display { font-size: 12px; color: var(--text-muted); min-width: 45px; }
-.pdf-status { margin-left: auto; font-size: 11px; color: var(--text-muted); }
-
-.pdf-pages-wrapper {
-  flex: 1; overflow: auto; background: #0a0f1a; display: flex; flex-direction: column;
-  align-items: center; padding: 20px; gap: 8px;
-}
-.pdf-page-canvas {
-  background: white; box-shadow: 0 2px 12px rgba(0,0,0,0.4); max-width: 100%;
-}
-
-/* ===== TOOL PANEL ===== */
-.tool-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.tool-toolbar {
-  padding: 12px 24px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; gap: 12px; flex-shrink: 0;
-}
-.tool-toolbar h2 { font-size: 16px; font-weight: 500; flex: 1; }
-.breadcrumb { font-size: 12px; color: var(--text-muted); }
-
-.tool-area { flex: 1; overflow-y: auto; padding: 24px; }
-
-/* View Toggle */
-.view-toggle { display: flex; gap: 2px; background: var(--card-bg); border-radius: var(--radius); padding: 2px; }
-.view-btn {
-  padding: 4px 10px; border: none; background: none; color: var(--text-muted);
-  cursor: pointer; border-radius: 4px; font-size: 13px;
-}
-.view-btn.active { background: var(--border-light); color: var(--text); }
-
-.list-view { display: none; }
-.list-view.active { display: block; }
-.list-table { width: 100%; border-collapse: collapse; }
-.list-table th {
-  text-align: left; padding: 8px 12px; font-size: 11px; text-transform: uppercase;
-  letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 1px solid var(--border);
-  font-weight: 500;
-}
-.list-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid rgba(71,85,105,0.3); }
-.list-table tr { cursor: pointer; transition: background 0.1s; }
-.list-table tbody tr:hover { background: rgba(59,130,246,0.08); }
-.list-table .fn-name { color: var(--accent-light); font-weight: 500; }
-.list-table .fn-desc { color: var(--text-muted); font-size: 12px; }
-.list-table .fn-tag {
-  display: inline-block; padding: 2px 8px; border-radius: 10px;
-  font-size: 10px; background: rgba(59,130,246,0.15); color: var(--accent-light);
-}
-
-.grid-view { display: none; }
-.grid-view.active { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-.func-card {
-  background: var(--card-bg); border-radius: var(--radius); padding: 18px;
-  cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
-  border: 1px solid transparent; display: flex; flex-direction: column;
-}
-.func-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.3); border-color: var(--accent); }
-.func-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.func-card-icon { font-size: 24px; }
-.func-card-name { font-size: 14px; font-weight: 500; }
-.func-card-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; flex: 1; }
-.func-card-meta { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-.meta-tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; background: rgba(255,255,255,0.06); color: var(--text-muted); }
-
-/* ===== MODAL ===== */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; justify-content: center; align-items: center; }
-.modal-overlay.show { display: flex; }
-.modal {
-  background: var(--sidebar-bg); border-radius: 10px; width: 92%; max-width: 600px;
-  max-height: 85vh; display: flex; flex-direction: column; border: 1px solid var(--border);
-}
-.modal-header {
-  padding: 16px 20px; border-bottom: 1px solid var(--border);
-  display: flex; justify-content: space-between; align-items: center;
-}
-.modal-header h3 { font-size: 16px; }
-.modal-close { background: none; border: none; color: var(--text-muted); font-size: 22px; cursor: pointer; }
-.modal-body { padding: 20px; overflow-y: auto; flex: 1; }
-.modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
-
-.form-group { margin-bottom: 14px; }
-.form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
-.form-group input, .form-group select, .form-group textarea {
-  width: 100%; padding: 9px 11px; background: var(--card-bg); border: 1px solid var(--border);
-  border-radius: var(--radius); color: var(--text); font-size: 13px; outline: none;
-}
-.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
-.form-group textarea { resize: vertical; min-height: 50px; }
-
-.drop-zone {
-  border: 2px dashed var(--border); border-radius: var(--radius); padding: 32px 16px;
-  text-align: center; cursor: pointer; transition: border-color 0.2s;
-}
-.drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: rgba(59,130,246,0.05); }
-.drop-zone-icon { font-size: 36px; margin-bottom: 8px; }
-.drop-zone p { color: var(--text-muted); font-size: 13px; }
-.file-list { margin-top: 10px; }
-.file-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 7px 10px; background: var(--card-bg); border-radius: 4px;
-  margin-bottom: 3px; font-size: 12px;
-}
-.file-item button { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 15px; }
-
-.btn { padding: 9px 18px; border-radius: var(--radius); border: none; cursor: pointer; font-size: 13px; transition: opacity 0.15s; }
-.btn:hover { opacity: 0.85; }
-.btn-primary { background: var(--accent); color: white; }
-.btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* Progress & Result */
-.progress-bar { width: 100%; height: 5px; background: var(--card-bg); border-radius: 3px; overflow: hidden; margin: 10px 0; }
-.progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; width: 0%; }
-.result-box { margin-top: 14px; padding: 14px; background: var(--card-bg); border-radius: var(--radius); display: none; }
-.result-box.show { display: block; }
-.result-box pre { white-space: pre-wrap; word-break: break-all; font-size: 12px; color: var(--text-muted); }
-
-/* Footer */
-.panel-footer {
-  padding: 10px 16px; border-top: 1px solid var(--border); font-size: 11px;
-  color: var(--text-muted); display: flex; align-items: center; gap: 8px;
-}
-.status-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 4px; }
-.status-dot.online { background: var(--success); }
-.status-dot.offline { background: var(--danger); }
-
-/* Empty state */
-.empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
-.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-.empty-state p { font-size: 14px; }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
-
-/* ===== CONTEXT MENU ===== */
-.context-menu {
-  position: fixed; background: var(--sidebar-bg); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 4px 0; min-width: 180px; z-index: 200;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: none;
-}
-.context-menu.show { display: block; }
-.context-menu-item {
-  padding: 8px 16px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px;
-}
-.context-menu-item:hover { background: rgba(59,130,246,0.15); }
-.context-menu-separator { height: 1px; background: var(--border); margin: 4px 0; }
-
-/* ===== LOADING OVERLAY ===== */
-.loading-overlay {
-  position: fixed; inset: 0; background: rgba(15,23,42,0.85); z-index: 150;
-  display: none; justify-content: center; align-items: center; flex-direction: column; gap: 16px;
-}
-.loading-overlay.show { display: flex; }
-.spinner {
-  width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent);
-  border-radius: 50%; animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.loading-text { font-size: 14px; color: var(--text-muted); }
-
-/* ===== BOOKMARK INDICATOR ===== */
-.bookmark-indicator {
-  position: fixed; top: 60px; right: 20px; background: var(--accent); color: white;
-  padding: 6px 14px; border-radius: var(--radius); font-size: 12px; z-index: 100;
-  display: none; animation: fadeIn 0.2s;
-}
-.bookmark-indicator.show { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-  .sidebar { width: 240px; position: fixed; top: var(--top-bar-height); bottom: 0; left: 0; z-index: 50; transform: translateX(-100%); }
-  .sidebar.open { transform: translateX(0); }
-  .grid-view { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-}
-@media (max-width: 600px) {
-  .sidebar { width: 100%; }
-  .content-area { padding: 16px; }
-  .topbar-brand span { display: none; }
-}
-</style>
+<title>WorkBuddy PDF 工具箱</title>
+<meta name="description" content="免费在线 PDF 工具集，支持合并、拆分、压缩、水印、OCR 等 80+ 功能">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
+<div class="container">
 
-<!-- ===== TOP BAR ===== -->
-<div class="topbar">
-  <div class="topbar-brand"><span>\ud83d\udcc4</span> WorkBuddy PDF</div>
-  <div class="search-box">
-    <input type="text" id="searchInput" placeholder="搜索功能名称、描述..." oninput="handleSearch(this.value)">
-  </div>
-  <div class="topbar-actions">
-    <button class="topbar-btn" id="sidebarToggle" onclick="toggleSidebar()">\u2630</button>
-    <button class="topbar-btn" onclick="expandAll()">\ud83d\udcc2 展开全部</button>
-    <button class="topbar-btn" onclick="collapseAll()">\ud83d\udcc1 折叠全部</button>
-    <button class="topbar-btn" onclick="location.reload()">\ud83d\udd04</button>
-  </div>
+  <!-- ══ 顶部检索功能区 ══ -->
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()" title="目录"><i class="fas fa-bars"></i></button>
+    <div class="logo">
+      <i class="fas fa-file-pdf"></i>
+      <span class="logo-text">WorkBuddy PDF</span>
+      <span class="logo-sub">工具箱</span>
+    </div>
+    <div class="search-global">
+      <i class="fas fa-search"></i>
+      <input id="globalSearch" type="text" placeholder="搜索工具或文档..."
+             oninput="onSearch(this.value)" autocomplete="off">
+      <kbd class="search-kbd">/</kbd>
+    </div>
+    <div class="top-actions">
+      <button class="tbtn" onclick="toggleSortMenu()" title="排序" id="btnSort"><i class="fas fa-sort"></i></button>
+      <button class="tbtn" onclick="toggleFilterPanel()" title="筛选" id="btnFilter"><i class="fas fa-filter"></i></button>
+      <button class="tbtn active" onclick="setView('grid')" id="btnGrid" title="网格"><i class="fas fa-th-large"></i></button>
+      <button class="tbtn" onclick="setView('list')" id="btnList" title="列表"><i class="fas fa-list"></i></button>
+    </div>
+  </header>
+
+  <!-- ══ 主体三区 ══ -->
+  <section class="main">
+
+    <!-- 左侧边栏遮罩（移动端） -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
+
+    <!-- ══ 左侧树形结构 ══ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3><i class="fas fa-folder-tree"></i> 功能目录</h3>
+        <span class="count-badge" id="toolCount">加载中…</span>
+      </div>
+      <div class="search-box">
+        <input id="treeSearch" type="text" placeholder="筛选功能…"
+               oninput="onSearch(this.value)" autocomplete="off">
+      </div>
+      <div class="tree-wrap" id="treeWrap"></div>
+    </aside>
+
+    <div class="splitter-v" id="splitterV"></div>
+
+    <!-- ══ 右侧浏览区 ══ -->
+    <main class="preview-area" id="previewArea">
+
+      <!-- 浏览区工具栏 -->
+      <div class="preview-toolbar" id="previewToolbar">
+        <div class="tool-group">
+          <button class="tbtn" onclick="goBack()" title="返回"><i class="fas fa-arrow-left"></i></button>
+        </div>
+        <div class="tool-sep"></div>
+        <div class="tool-group" id="gridViewGroup">
+          <button class="tbtn active" onclick="setView('grid')" id="btnGridT" title="网格视图"><i class="fas fa-th-large"></i></button>
+          <button class="tbtn" onclick="setView('list')" id="btnListT" title="列表视图"><i class="fas fa-list"></i></button>
+        </div>
+        <div class="tool-sep"></div>
+        <div class="tool-group">
+          <button class="tbtn" onclick="toggleSortMenu()" title="排序" id="btnSortT"><i class="fas fa-sort"></i></button>
+          <button class="tbtn" onclick="toggleFilterPanel()" title="筛选" id="btnFilterT"><i class="fas fa-filter"></i></button>
+        </div>
+        <div class="tool-sep"></div>
+        <div class="tool-group">
+          <button class="tbtn" onclick="uploadFiles()" title="上传文件"><i class="fas fa-upload"></i></button>
+        </div>
+        <div class="browse-info" id="browseInfo"></div>
+      </div>
+
+      <!-- 排序下拉 -->
+      <div class="dropdown-menu" id="sortMenu" style="display:none">
+        <div class="dropdown-title">排序方式</div>
+        <button class="dropdown-item active" data-sort="default" onclick="setSort('default')"><i class="fas fa-check"></i> 默认排序</button>
+        <button class="dropdown-item" data-sort="name-asc" onclick="setSort('name-asc')"><i class="fas fa-check"></i> 名称 A→Z</button>
+        <button class="dropdown-item" data-sort="name-desc" onclick="setSort('name-desc')"><i class="fas fa-check"></i> 名称 Z→A</button>
+      </div>
+
+      <!-- 筛选面板 -->
+      <div class="filter-panel" id="filterPanel" style="display:none">
+        <div class="filter-title">工具类型</div>
+        <label class="filter-check"><input type="checkbox" value="tool" checked onchange="onFilterChange()"> <i class="fas fa-wrench"></i> PDF工具</label>
+        <label class="filter-check"><input type="checkbox" value="doc" checked onchange="onFilterChange()"> <i class="fas fa-file-alt"></i> 文档资料</label>
+        <label class="filter-check"><input type="checkbox" value="file" checked onchange="onFilterChange()"> <i class="fas fa-folder"></i> 我的文件</label>
+      </div>
+
+      <!-- 浏览内容 -->
+      <div class="preview-body" id="previewBody">
+
+        <!-- 空状态 -->
+        <div class="empty-state" id="emptyState">
+          <i class="fas fa-magic"></i>
+          <h3>WorkBuddy PDF 工具箱</h3>
+          <p>从左侧选择功能开始使用，支持合并、拆分、压缩、OCR 等 80+ PDF 操作</p>
+          <span>按 <kbd>/</kbd> 快速搜索 · <kbd>?</kbd> 查看帮助</span>
+        </div>
+
+        <!-- 网格视图 -->
+        <div class="grid-view" id="gridView" style="display:none">
+          <!-- 动态渲染 -->
+        </div>
+
+        <!-- 列表视图 -->
+        <div class="list-view" id="listView" style="display:none">
+          <!-- 动态渲染 -->
+        </div>
+
+        <!-- 工具面板（点击工具后展开） -->
+        <div class="tool-panel" id="toolPanel" style="display:none">
+          <div class="tool-panel-header">
+            <button class="tbtn" onclick="hideToolPanel()"><i class="fas fa-arrow-left"></i></button>
+            <h2 id="toolPanelTitle"></h2>
+          </div>
+          <div class="tool-panel-body" id="toolPanelBody">
+            <!-- 动态加载 -->
+          </div>
+        </div>
+
+      </div><!-- /preview-body -->
+    </main>
+
+  </section>
+
+  <!-- 状态栏 -->
+  <footer class="status-bar">
+    <span id="statusMsg"><i class="fas fa-circle"></i> 就绪</span>
+    <span id="statusCount"></span>
+    <span id="statusFilter" style="display:none">筛选: 无</span>
+    <span style="margin-left:auto" id="statusView">视图: 网格</span>
+  </footer>
+
+</div><!-- /container -->
+
+<!-- 移动端底部工具栏 -->
+<div class="mobile-bottom-bar" id="mobileBottomBar">
+  <div class="mb-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i><span>目录</span></div>
+  <div class="mb-btn" onclick="setView('grid')"><i class="fas fa-th-large"></i><span>网格</span></div>
+  <div class="mb-btn" onclick="setView('list')"><i class="fas fa-list"></i><span>列表</span></div>
+  <div class="mb-btn" onclick="uploadFiles()"><i class="fas fa-upload"></i><span>上传</span></div>
 </div>
 
-<!-- ===== MAIN ===== -->
-<div class="main">
+<!-- 浮动目录按钮 -->
+<button class="sidebar-float-toggle" id="sidebarFloatToggle" onclick="toggleSidebar()" title="功能目录">
+  <i class="fas fa-folder-tree"></i>
+</button>
 
-  <!-- Left: Tree Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <span>\ud83d\udcc1 目录</span>
-      <button onclick="toggleAllNodes()" title="展开/折叠">\u229e</button>
-    </div>
-    <div class="sidebar-content" id="treeContent"></div>
-    <div class="panel-footer">
-      <span class="status-dot offline" id="statusDot"></span>
-      <span id="statusText">连接中...</span>
-    </div>
-  </div>
-
-  <!-- Right: Content Area -->
-  <div class="content-panel" id="contentPanel">
-    <!-- PDF Viewer Mode -->
-    <div class="pdf-viewer-container" id="pdfViewerContainer" style="display:none;">
-      <div class="pdf-toolbar">
-        <button class="pdf-toolbar-btn" id="prevPageBtn" onclick="prevPage()" disabled>\u25c0 上一页</button>
-        <div class="page-nav">
-          <input type="number" id="pageInput" min="1" value="1" onchange="goToPage(parseInt(this.value))">
-          <span>/ <span id="pageCountDisplay">0</span> 页</span>
-        </div>
-        <button class="pdf-toolbar-btn" id="nextPageBtn" onclick="nextPage()" disabled>下一页 \u25b6</button>
-        <span style="width:1px;height:20px;background:var(--border);margin:0 4px;"></span>
-        <button class="pdf-toolbar-btn" onclick="zoomOut()">\u2212</button>
-        <span class="zoom-display" id="zoomDisplay">100%</span>
-        <button class="pdf-toolbar-btn" onclick="zoomIn()">+</button>
-        <button class="pdf-toolbar-btn" onclick="fitWidth()">\ud83d\udd0d 适应宽度</button>
-        <button class="pdf-toolbar-btn" onclick="fitPage()">\ud83d\udce6 适应页面</button>
-        <button class="pdf-toolbar-btn" onclick="rotatePage()">\ud83d\udd04 旋转</button>
-        <button class="pdf-toolbar-btn" id="bookmarkBtn" onclick="toggleBookmark()">\u2b50 收藏</button>
-        <span class="pdf-status" id="pdfStatus"></span>
-      </div>
-      <div class="pdf-pages-wrapper" id="pdfPagesWrapper" oncontextmenu="showContextMenu(event)">
-        <canvas id="pdfCanvas" class="pdf-page-canvas"></canvas>
-      </div>
-    </div>
-
-    <!-- Tool Panel Mode -->
-    <div class="tool-panel" id="toolPanel">
-      <div class="tool-toolbar">
-        <div class="breadcrumb" id="breadcrumb">全部功能</div>
-        <h2 id="contentTitle">全部功能</h2>
-        <div class="view-toggle">
-          <button class="view-btn active" id="btnListView" onclick="setView('list')">\u2630 列表</button>
-          <button class="view-btn" id="btnGridView" onclick="setView('grid')">\u25a6 网格</button>
-        </div>
-      </div>
-      <div class="tool-area">
-        <!-- List View -->
-        <div class="list-view active" id="listView">
-          <table class="list-table">
-            <thead><tr><th>功能</th><th>描述</th><th>输入</th><th>输出</th></tr></thead>
-            <tbody id="listBody"></tbody>
-          </table>
-        </div>
-        <!-- Grid View -->
-        <div class="grid-view" id="gridView"></div>
-        <!-- Empty State -->
-        <div class="empty-state" id="emptyState" style="display:none;">
-          <div class="icon">\ud83d\udd0d</div>
-          <p>没有找到匹配的功能</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ===== FUNCTION MODAL ===== -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal">
+<!-- 上传弹层 -->
+<div class="modal-overlay" id="uploadModal" style="display:none">
+  <div class="modal-box">
     <div class="modal-header">
-      <h3 id="modalTitle">功能名称</h3>
-      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h3><i class="fas fa-upload"></i> 上传文件</h3>
+      <button class="modal-close" onclick="closeUploadModal()"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-      <p id="modalDesc" style="color:var(--text-muted);font-size:13px;margin-bottom:16px;"></p>
-      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-        <div class="drop-zone-icon">\ud83d\udcc1</div>
-        <p>拖拽文件到这里，或点击选择</p>
-        <input type="file" id="fileInput" multiple style="display:none" onchange="handleFiles(this.files)">
+      <div class="upload-drop-zone" id="uploadDropZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>点击或拖拽上传文件</p>
+        <span>支持 PDF、图片、文档</span>
+        <input type="file" id="fileInput" multiple accept=".pdf,image/*,.doc,.docx,.txt" hidden>
       </div>
-      <div class="file-list" id="fileList"></div>
-      <div id="paramFields"></div>
+      <div class="upload-file-list" id="uploadFileList"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal()">取消</button>
-      <button class="btn btn-primary" id="execBtn" onclick="executeFunction()" disabled>执行</button>
+      <button class="mbtn mbtn-cancel" onclick="closeUploadModal()">取消</button>
+      <button class="mbtn mbtn-primary" id="uploadConfirmBtn" onclick="confirmUpload()" disabled>确认上传</button>
     </div>
   </div>
 </div>
 
-<!-- ===== RESULT MODAL ===== -->
-<div class="modal-overlay" id="resultOverlay">
-  <div class="modal" style="max-width:480px;">
-    <div class="modal-header">
-      <h3>处理结果</h3>
-      <button class="modal-close" onclick="closeResult()">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-      <p id="resultStatus" style="font-size:13px;color:var(--text-muted);"></p>
-      <div class="result-box" id="resultArea"></div>
-    </div>
-    <div class="modal-footer" id="resultFooter" style="display:none;">
-      <a class="btn btn-primary" id="downloadLink" download="result.pdf">\u2b07 下载文件</a>
-    </div>
-  </div>
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- 快捷键提示 -->
+<div class="shortcut-hint" id="shortcutHint" style="display:none">
+  <h4><i class="fas fa-keyboard"></i> 快捷键</h4>
+  <div><span>搜索</span><kbd>/</kbd></div>
+  <div><span>目录</span><kbd>T</kbd></div>
+  <div><span>网格视图</span><kbd>G</kbd></div>
+  <div><span>列表视图</span><kbd>L</kbd></div>
+  <div><span>上传</span><kbd>U</kbd></div>
+  <div><span>帮助</span><kbd>?</kbd></div>
 </div>
 
-<!-- ===== CONTEXT MENU ===== -->
-<div class="context-menu" id="contextMenu">
-  <div class="context-menu-item" onclick="contextMenuAction('zoomIn')">\ud83d\udd0d 放大</div>
-  <div class="context-menu-item" onclick="contextMenuAction('zoomOut')">\ud83d\udd0d 缩小</div>
-  <div class="context-menu-separator"></div>
-  <div class="context-menu-item" onclick="contextMenuAction('prevPage')">\u25c0 上一页</div>
-  <div class="context-menu-item" onclick="contextMenuAction('nextPage')">下一页 \u25b6</div>
-  <div class="context-menu-item" onclick="contextMenuAction('goToPage')">\ud83d\udd22 跳转到页码</div>
-  <div class="context-menu-separator"></div>
-  <div class="context-menu-item" onclick="contextMenuAction('fitWidth')">\ud83d\udd0d 适应宽度</div>
-  <div class="context-menu-item" onclick="contextMenuAction('fitPage')">\ud83d\udce6 适应页面</div>
-  <div class="context-menu-item" onclick="contextMenuAction('rotate')">\ud83d\udd04 旋转</div>
-  <div class="context-menu-separator"></div>
-  <div class="context-menu-item" onclick="contextMenuAction('bookmark')">\u2b50 收藏此页</div>
+<!-- 右键菜单 -->
+<div id="contextMenu" style="display:none;position:fixed;z-index:9999;min-width:180px;background:rgba(17,26,62,.98);border:1px solid rgba(124,93,252,.3);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:6px 0;backdrop-filter:blur(12px)">
+  <div class="ctx-item" onclick="ctxAction('run')"><i class="fas fa-play"></i> 启动工具</div>
+  <div class="ctx-item" onclick="ctxAction('open')"><i class="fas fa-external-link-alt"></i> 新窗口打开</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctxAction('copy')"><i class="fas fa-copy"></i> 复制链接</div>
+  <div class="ctx-item" onclick="ctxAction('share')"><i class="fas fa-share"></i> 分享</div>
 </div>
 
-<!-- ===== LOADING OVERLAY ===== -->
-<div class="loading-overlay" id="loadingOverlay">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loadingText">加载中...</div>
-</div>
-
-<!-- ===== BOOKMARK INDICATOR ===== -->
-<div class="bookmark-indicator" id="bookmarkIndicator">\u2b50 已收藏</div>
-
-<script>
-// ============================================================
-// State
-// ============================================================
-let catalogData = [];
-let allFunctions = [];
-let categories = {};
-let selectedCategory = 'all';
-let selectedNode = null;
-let currentView = 'grid';
-let currentFiles = [];
-let currentTool = null;
-
-// PDF Viewer state
-let pdfDoc = null;
-let currentPage = 1;
-let totalPages = 0;
-let pdfScale = 1.5;
-let rotation = 0;
-let pdfUrl = '';
-let bookmarks = JSON.parse(localStorage.getItem('pdf_bookmarks') || '{}');
-let historyStack = [];
-
-const ICONS = {
-  merge:'\ud83d\udd17', 'split-pages':'\u2702\ufe0f', rotate:'\ud83d\udd04', 'add-password':'\ud83d\udd12', 'img-to-pdf':'\ud83d\uddbc\ufe0f',
-  compress:'\ud83d\udce6', ocr:'\ud83d\udd0d', repair:'\ud83d\udd27', flatten:'\ud83d\udcc4', watermark:'\ud83d\udca7',
-  'remove-pages':'\u274c', organize:'\ud83d\udcc1', crop:'\ud83d\udcd0', scale:'\ud83d\udd0e', overlay:'\u25e7',
-  'pdf-to-word':'\ud83d\udcdd', 'pdf-to-img':'\ud83c\udfee', 'pdf-to-text':'\ud83d\udcdc', 'pdf-to-csv':'\ud83d\udcca',
-  'pdf-to-html':'\ud83c\udf10', 'pdf-to-markdown':'\ud83d\udc55', 'pdf-to-presentation':'\ud83d\udcfd\ufe0f',
-  'url-to-pdf':'\ud83d\udd17', 'html-to-pdf':'\ud83d\udcbb', 'markdown-to-pdf':'\ud83d\udccb',
-  sanitize:'\ud83e\uddf9', 'auto-redact':'\ud83d\udda4\ufe0f', redact:'\u2b1b\ufe0f', 'get-info':'\u2139\ufe0f',
-  'add-page-numbers':'\ud83d\udd22', 'add-image':'\ud83c\udfa8', 'add-stamp':'\ud83c\udf85',
-  'update-metadata':'\ud83d\udce0', 'auto-rename':'\ud83c\udff7\ufe0f', 'auto-split':'\ud83d\udcda',
-  'remove-blanks':'\ud83d\udcc3', 'extract-images':'\ud83d\uddbc\ufe0f', 'remove-password':'\ud83d\udd13',
-  'cert-sign':'\u270d\ufe0f', 'validate-signature':'\u2705', 'remove-cert-sign':'\ud83d\udeab',
-  'show-javascript':'\ud83d\udcbb', 'remove-image':'\ud83d\udeab', 'single-page':'\ud83d\udcc4',
-  'multi-layout':'\ud83d\udcd0', 'split-by-size':'\ud83d\udcf0', 'split-sections':'\ud83d\udcc1',
-  'split-chapters':'\ud83d\udcda', 'pdf-to-xml':'\ud83c\udff7\ufe0f', 'pdf-to-pdfa':'\ud83d\udce6',
-  'ebook-to-pdf':'\ud83d\udc56', 'file-to-pdf':'\ud83d\udcc1', 'decompress':'\ud83d\udcc8',
-  'extract-scans':'\ud83d\udd0e', 'add-attachments':'\ud83d\udcce'
-};
-
-const CAT_ICONS = {
-  '合并/拆分': '\ud83d\udd17', '页面操作': '\ud83d\udcc1', '安全': '\ud83d\udd12',
-  '转换': '\ud83d\udd04', '优化': '\u26a1', '筛选': '\ud83d\udd0d'
-};
-
-let config = { spdfUrl: 'http://localhost:8080' };
-
-// ============================================================
-// Init
-// ============================================================
-async function init() {
-  await Promise.all([loadCatalog(), loadFunctions()]);
-  renderTree();
-  renderContent();
-  setView(currentView);
-  checkStatus();
-  setupDragDrop();
-  setupKeyboardShortcuts();
-  setupContextMenu();
-}
-
-// ============================================================
-// Catalog Loading
-// ============================================================
-async function loadCatalog() {
-  try {
-    const res = await fetch('catalog.json');
-    catalogData = await res.json();
-  } catch(e) {
-    console.error('Failed to load catalog:', e);
-    catalogData = [];
-  }
-}
-
-// ============================================================
-// Functions Loading
-// ============================================================
-async function loadFunctions() {
-  try {
-    const res = await fetch('/api/functions');
-    allFunctions = await res.json();
-    categories = {};
-    allFunctions.forEach(fn => {
-      if (!categories[fn.category]) categories[fn.category] = [];
-      categories[fn.category].push(fn);
-    });
-  } catch(e) {
-    console.error('Failed to load functions:', e);
-    allFunctions = [];
-  }
-}
-
-// ============================================================
-// Status Check
-// ============================================================
-async function checkStatus() {
-  try {
-    const res = await fetch('/api/status');
-    const data = await res.json();
-    const dot = document.getElementById('statusDot');
-    const text = document.getElementById('statusText');
-    if (data.status === 'online') {
-      dot.className = 'status-dot online';
-      text.textContent = `${data.functions} 个功能可用`;
-    } else {
-      dot.className = 'status-dot offline';
-      text.textContent = '后端离线';
-    }
-  } catch(e) {
-    document.getElementById('statusDot').className = 'status-dot offline';
-    document.getElementById('statusText').textContent = '后端离线';
-  }
-}
-
-// ============================================================
-// Tree Building (from catalog.json)
-// ============================================================
-function renderTree() {
-  const container = document.getElementById('treeContent');
-  let html = '';
-
-  // "全部功能" root node
-  html += buildTreeNode({
-    label: '\ud83d\udccb 全部功能',
-    icon: '\ud83d\udccb',
-    badge: allFunctions.length,
-    active: selectedCategory === 'all',
-    children: buildCategoryNodes(),
-    onClick: () => selectCategory('all'),
-    isRoot: true
-  });
-
-  // Catalog tree nodes
-  catalogData.forEach((node, i) => {
-    html += buildCatalogNode(node, 0, i);
-  });
-
-  container.innerHTML = html;
-}
-
-function buildCategoryNodes() {
-  return Object.entries(categories).map(([cat, fns]) => ({
-    label: cat,
-    icon: CAT_ICONS[cat] || '\ud83d\udcc1',
-    badge: fns.length,
-    active: selectedCategory === cat,
-    onClick: () => selectCategory(cat),
-    children: fns.map(fn => ({
-      label: fn.name,
-      icon: ICONS[fn.id] || '\ud83d\udcc4',
-      onClick: (e) => { e.stopPropagation(); selectCategory(cat); openFunctionById(fn.id); },
-      isLeaf: true
-    }))
-  }));
-}
-
-function buildCatalogNode(node, depth, idx) {
-  const hasChildren = node.children && node.children.length > 0;
-  const isActive = selectedNode && selectedNode.label === node.label;
-  let html = `<div class="tree-node" data-idx="${idx}" data-depth="${depth}">`;
-  html += `<div class="tree-row ${isActive?'active':''}" onclick="selectCatalogNode(this, ${idx})">`;
-  html += `<span class="tree-toggle ${hasChildren?'':'leaf'}">\u25b6</span>`;
-  html += `<span class="tree-icon">${node.label || '\ud83d\udcc4'}</span>`;
-  html += `<span class="tree-label">${node.label || 'Untitled'}</span>`;
-  if (node.size) html += `<span class="tree-badge">${node.size}</span>`;
-  html += `</div>`;
-
-  if (hasChildren) {
-    html += `<div class="tree-children open">`;
-    node.children.forEach((child, ci) => {
-      html += buildCatalogNode(child, depth + 1, `${idx}-${ci}`);
-    });
-    html += `</div>`;
-  }
-
-  html += `</div>`;
-  return html;
-}
-
-function selectCatalogNode(row, idx) {
-  const node = row.parentElement;
-  const toggle = row.querySelector('.tree-toggle');
-  const children = node.querySelector('.tree-children');
-
-  // Toggle open/close
-  if (children) {
-    const isOpen = children.classList.contains('open');
-    if (isOpen) {
-      children.classList.remove('open');
-      toggle.classList.remove('open');
-    } else {
-      children.classList.add('open');
-      toggle.classList.add('open');
-    }
-  }
-
-  // Load PDF if leaf node with pdf URL
-  const catalogNode = getNodeByIndex(catalogData, idx);
-  if (catalogNode && catalogNode.pdf && !catalogNode.children) {
-    loadPdfFromCatalog(catalogNode);
-  } else if (catalogNode) {
-    selectedNode = catalogNode;
-  }
-
-  // Highlight active
-  document.querySelectorAll('.tree-row').forEach(r => r.classList.remove('active'));
-  row.classList.add('active');
-}
-
-function getNodeByIndex(nodes, idx) {
-  if (typeof idx === 'number') {
-    return nodes[idx];
-  }
-  const parts = String(idx).split('-');
-  let current = nodes[parseInt(parts[0])];
-  for (let i = 1; i < parts.length; i++) {
-    if (current.children && current.children[parseInt(parts[i])]) {
-      current = current.children[parseInt(parts[i])];
-    }
-  }
-  return current;
-}
-
-// ============================================================
-// PDF Viewer
-// ============================================================
-async function loadPdfFromCatalog(node) {
-  if (!node.pdf) return;
-  showLoading('正在加载 PDF...');
-  hideToolPanel();
-  showPdfViewer();
-
-  try {
-    // Try loading from catalog URL first, then from API
-    let url = node.pdf;
-    if (!url.startsWith('http')) {
-      url = config.spdfUrl + url;
-    }
-    await loadPdf(url);
-  } catch(e) {
-    console.error('Failed to load PDF:', e);
-    hideLoading();
-    alert('无法加载 PDF: ' + e.message);
-  }
-}
-
-async function loadPdf(url) {
-  showLoading('正在加载 PDF...');
-  pdfUrl = url;
-  currentPage = 1;
-  rotation = 0;
-  historyStack = [url];
-
-  try {
-    pdfDoc = await pdfjsLib.getDocument({
-      url: url,
-      cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
-      cMapPacked: true
-    }).promise;
-
-    totalPages = pdfDoc.numPages;
-    document.getElementById('pageCountDisplay').textContent = totalPages;
-    document.getElementById('pageInput').max = totalPages;
-    document.getElementById('pageInput').value = 1;
-    currentPage = 1;
-
-    await renderPage(currentPage);
-    updateNavButtons();
-    document.getElementById('pdfStatus').textContent = `${totalPages} 页`;
-    hideLoading();
-  } catch(e) {
-    console.error('PDF load error:', e);
-    hideLoading();
-    alert('PDF 加载失败: ' + e.message);
-  }
-}
-
-async function renderPage(num) {
-  if (!pdfDoc) return;
-  const page = await pdfDoc.getPage(num);
-  const viewport = page.getViewport({ scale: pdfScale, rotation: rotation });
-
-  const canvas = document.getElementById('pdfCanvas');
-  const ctx = canvas.getContext('2d');
-  canvas.height = viewport.height;
-  canvas.width = viewport.width;
-
-  const renderContext = {
-    canvasContext: ctx,
-    viewport: viewport
-  };
-
-  await page.render(renderContext).promise;
-  document.getElementById('pageInput').value = num;
-}
-
-function prevPage() {
-  if (currentPage <= 1) return;
-  currentPage--;
-  renderPage(currentPage);
-  updateNavButtons();
-}
-
-function nextPage() {
-  if (currentPage >= totalPages) return;
-  currentPage++;
-  renderPage(currentPage);
-  updateNavButtons();
-}
-
-function goToPage(num) {
-  if (num < 1 || num > totalPages) return;
-  currentPage = num;
-  renderPage(currentPage);
-  updateNavButtons();
-}
-
-function updateNavButtons() {
-  document.getElementById('prevPageBtn').disabled = currentPage <= 1;
-  document.getElementById('nextPageBtn').disabled = currentPage >= totalPages;
-}
-
-function zoomIn() {
-  pdfScale = Math.min(pdfScale * 1.25, 5);
-  document.getElementById('zoomDisplay').textContent = Math.round(pdfScale * 100) + '%';
-  renderPage(currentPage);
-}
-
-function zoomOut() {
-  pdfScale = Math.max(pdfScale / 1.25, 0.3);
-  document.getElementById('zoomDisplay').textContent = Math.round(pdfScale * 100) + '%';
-  renderPage(currentPage);
-}
-
-function fitWidth() {
-  if (!pdfDoc) return;
-  pdfDoc.getPage(currentPage).then(page => {
-    const viewport = page.getViewport({ scale: 1, rotation: rotation });
-    const wrapper = document.getElementById('pdfPagesWrapper');
-    const wrapperWidth = wrapper.clientWidth - 40;
-    pdfScale = wrapperWidth / viewport.width;
-    document.getElementById('zoomDisplay').textContent = Math.round(pdfScale * 100) + '%';
-    renderPage(currentPage);
-  });
-}
-
-function fitPage() {
-  pdfScale = 1.5;
-  document.getElementById('zoomDisplay').textContent = '100%';
-  renderPage(currentPage);
-}
-
-function rotatePage() {
-  rotation = (rotation + 90) % 360;
-  renderPage(currentPage);
-}
-
-function toggleBookmark() {
-  const key = pdfUrl + ':' + currentPage;
-  if (bookmarks[key]) {
-    delete bookmarks[key];
-    showToast('\u2b50 已取消收藏');
-  } else {
-    bookmarks[key] = { url: pdfUrl, page: currentPage, time: Date.now() };
-    localStorage.setItem('pdf_bookmarks', JSON.stringify(bookmarks));
-    showToast('\u2b50 已收藏第 ' + currentPage + ' 页');
-    const indicator = document.getElementById('bookmarkIndicator');
-    indicator.classList.add('show');
-    setTimeout(() => indicator.classList.remove('show'), 2000);
-  }
-}
-
-// ============================================================
-// Context Menu
-// ============================================================
-function setupContextMenu() {
-  document.addEventListener('click', () => {
-    document.getElementById('contextMenu').classList.remove('show');
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      document.getElementById('contextMenu').classList.remove('show');
-    }
-  });
-}
-
-function showContextMenu(e) {
-  e.preventDefault();
-  const menu = document.getElementById('contextMenu');
-  menu.style.left = e.clientX + 'px';
-  menu.style.top = e.clientY + 'px';
-  menu.classList.add('show');
-}
-
-function contextMenuAction(action) {
-  document.getElementById('contextMenu').classList.remove('show');
-  switch(action) {
-    case 'zoomIn': zoomIn(); break;
-    case 'zoomOut': zoomOut(); break;
-    case 'prevPage': prevPage(); break;
-    case 'nextPage': nextPage(); break;
-    case 'goToPage':
-      const page = prompt('请输入页码:', currentPage);
-      if (page) goToPage(parseInt(page));
-      break;
-    case 'fitWidth': fitWidth(); break;
-    case 'fitPage': fitPage(); break;
-    case 'rotate': rotatePage(); break;
-    case 'bookmark': toggleBookmark(); break;
-  }
-}
-
-// ============================================================
-// Keyboard Shortcuts
-// ============================================================
-function setupKeyboardShortcuts() {
-  document.addEventListener('keydown', (e) => {
-    if (!pdfDoc) return;
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    switch(e.key) {
-      case 'ArrowLeft': case 'PageUp': prevPage(); e.preventDefault(); break;
-      case 'ArrowRight': case 'PageDown': nextPage(); e.preventDefault(); break;
-      case '+': case '=': zoomIn(); e.preventDefault(); break;
-      case '-': zoomOut(); e.preventDefault(); break;
-      case '0': fitPage(); e.preventDefault(); break;
-      case '1': fitWidth(); e.preventDefault(); break;
-    }
-  });
-}
-
-// ============================================================
-// Sidebar Toggle
-// ============================================================
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-}
-
-// ============================================================
-// Tree Controls
-// ============================================================
-function expandAll() {
-  document.querySelectorAll('.tree-children').forEach(el => el.classList.add('open'));
-  document.querySelectorAll('.tree-toggle:not(.leaf)').forEach(el => el.classList.add('open'));
-}
-
-function collapseAll() {
-  document.querySelectorAll('.tree-children').forEach(el => el.classList.remove('open'));
-  document.querySelectorAll('.tree-toggle:not(.leaf)').forEach(el => el.classList.remove('open'));
-}
-
-function toggleAllNodes() {
-  const allOpen = document.querySelector('.tree-children.open');
-  if (allOpen) collapseAll(); else expandAll();
-}
-
-// ============================================================
-// Category Selection
-// ============================================================
-function selectCategory(cat) {
-  selectedCategory = cat;
-  selectedNode = null;
-  const title = cat === 'all' ? '全部功能' : cat;
-  document.getElementById('contentTitle').textContent = title;
-  document.getElementById('breadcrumb').textContent = title;
-  renderTree();
-  renderContent();
-  showToolPanel();
-}
-
-// ============================================================
-// Content Rendering
-// ============================================================
-function renderContent() {
-  const filtered = selectedCategory === 'all' ? allFunctions : allFunctions.filter(f => f.category === selectedCategory);
-  renderListView(filtered);
-  renderGridView(filtered);
-  document.getElementById('emptyState').style.display = filtered.length === 0 ? 'block' : 'none';
-}
-
-function renderListView(fns) {
-  const body = document.getElementById('listBody');
-  body.innerHTML = fns.map(fn => {
-    const icon = ICONS[fn.id] || '\ud83d\udcc4';
-    return `<tr onclick="openFunctionById('${fn.id}')">
-      <td><span class="fn-name">${icon} ${fn.name}</span></td>
-      <td><span class="fn-desc">${fn.description}</span></td>
-      <td>${fn.input_types.map(t => `<span class="fn-tag">${t}</span>`).join(' ')}</td>
-      <td><span class="fn-tag">\u2192 ${fn.output_type}</span></td>
-    </tr>`;
-  }).join('');
-}
-
-function renderGridView(fns) {
-  const grid = document.getElementById('gridView');
-  grid.innerHTML = fns.map(fn => {
-    const icon = ICONS[fn.id] || '\ud83d\udcc4';
-    return `<div class="func-card" onclick="openFunctionById('${fn.id}')">
-      <div class="func-card-head">
-        <span class="func-card-icon">${icon}</span>
-        <span class="func-card-name">${fn.name}</span>
-      </div>
-      <div class="func-card-desc">${fn.description}</div>
-      <div class="func-card-meta">
-        ${fn.input_types.map(t=>`<span class="meta-tag">${t}</span>`).join('')}
-        <span class="meta-tag">\u2192 ${fn.output_type}</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function setView(view) {
-  currentView = view;
-  document.getElementById('listView').classList.toggle('active', view === 'list');
-  document.getElementById('gridView').classList.toggle('active', view === 'grid');
-  document.getElementById('btnListView').classList.toggle('active', view === 'list');
-  document.getElementById('btnGridView').classList.toggle('active', view === 'grid');
-}
-
-// ============================================================
-// PDF / Tool Panel Toggle
-// ============================================================
-function showPdfViewer() {
-  document.getElementById('pdfViewerContainer').style.display = 'flex';
-  document.getElementById('toolPanel').style.display = 'none';
-}
-
-function showToolPanel() {
-  document.getElementById('pdfViewerContainer').style.display = 'none';
-  document.getElementById('toolPanel').style.display = 'flex';
-}
-
-function hideToolPanel() {
-  document.getElementById('toolPanel').style.display = 'none';
-}
-
-// ============================================================
-// Search
-// ============================================================
-function handleSearch(query) {
-  query = query.toLowerCase().trim();
-  if (!query) {
-    selectedCategory = 'all';
-    document.getElementById('contentTitle').textContent = '全部功能';
-    document.getElementById('breadcrumb').textContent = '全部功能';
-    renderTree();
-    renderContent();
-    return;
-  }
-  const filtered = allFunctions.filter(fn =>
-    fn.name.toLowerCase().includes(query) ||
-    fn.description.toLowerCase().includes(query) ||
-    fn.category.toLowerCase().includes(query) ||
-    fn.id.toLowerCase().includes(query)
-  );
-  document.getElementById('contentTitle').textContent = `搜索结果: "${query}"`;
-  document.getElementById('breadcrumb').textContent = `搜索 ${filtered.length} 个结果`;
-  renderListView(filtered);
-  renderGridView(filtered);
-  document.getElementById('emptyState').style.display = filtered.length === 0 ? 'block' : 'none';
-}
-
-// ============================================================
-// Function Modal
-// ============================================================
-function openFunctionById(id) {
-  currentTool = allFunctions.find(f => f.id === id);
-  if (!currentTool) return;
-  selectedFiles = [];
-  document.getElementById('modalTitle').textContent = currentTool.name;
-  document.getElementById('modalDesc').textContent = currentTool.description;
-  document.getElementById('fileList').innerHTML = '';
-  document.getElementById('fileInput').value = '';
-  renderParamFields();
-  updateExecButton();
-  document.getElementById('modalOverlay').classList.add('show');
-}
-
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('show');
-}
-
-function renderParamFields() {
-  const container = document.getElementById('paramFields');
-  if (!currentTool || !currentTool.params || currentTool.params.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
-  container.innerHTML = currentTool.params.map(p => {
-    if (p.type === 'select') {
-      return `<div class="form-group"><label>${p.name}${p.required?' *':''}</label>
-        <select id="param_${p.name}">${p.options.map(o=>`<option>${o}</option>`).join('')}</select></div>`;
-    }
-    return `<div class="form-group"><label>${p.name}${p.required?' *':''}</label>
-      <input type="${p.type==='number'?'number':'text'}" id="param_${p.name}" placeholder="${p.default||''}"></div>`;
-  }).join('');
-}
-
-let selectedFiles = [];
-
-function handleFiles(fileList) {
-  for (const f of fileList) selectedFiles.push(f);
-  renderFileList();
-  updateExecButton();
-}
-
-function renderFileList() {
-  const el = document.getElementById('fileList');
-  el.innerHTML = selectedFiles.map((f,i) => `
-    <div class="file-item">
-      <span>\ud83d\udcc4 ${f.name} (${(f.size/1024).toFixed(1)}KB)</span>
-      <button onclick="removeFile(${i})">&times;</button>
-    </div>
-  `).join('');
-}
-
-function removeFile(i) {
-  selectedFiles.splice(i, 1);
-  renderFileList();
-  updateExecButton();
-}
-
-function updateExecButton() {
-  const btn = document.getElementById('execBtn');
-  const hasFiles = selectedFiles.length > 0;
-  btn.disabled = !hasFiles;
-  btn.textContent = hasFiles ? `执行: ${currentTool?.name}` : '请先选择文件';
-}
-
-function setupDragDrop() {
-  const dz = document.getElementById('dropZone');
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-  dz.addEventListener('drop', e => {
-    e.preventDefault();
-    dz.classList.remove('dragover');
-    handleFiles(e.dataTransfer.files);
-  });
-}
-
-// ============================================================
-// Execute Function
-// ============================================================
-async function executeFunction() {
-  if (!currentTool || selectedFiles.length === 0) return;
-  closeModal();
-  const resultOverlay = document.getElementById('resultOverlay');
-  resultOverlay.classList.add('show');
-  const progress = document.getElementById('progressFill');
-  const status = document.getElementById('resultStatus');
-  const area = document.getElementById('resultArea');
-  const footer = document.getElementById('resultFooter');
-  progress.style.width = '0%';
-  status.textContent = '准备中...';
-  area.classList.remove('show');
-  footer.style.display = 'none';
-
-  const fd = new FormData();
-  selectedFiles.forEach(f => fd.append('file', f));
-  if (currentTool.params) {
-    for (const p of currentTool.params) {
-      const el = document.getElementById('param_' + p.name);
-      if (el && el.value) fd.append(p.name, el.value);
-    }
-  }
-
-  try {
-    status.textContent = `正在调用: ${currentTool.endpoint}`;
-    progress.style.width = '30%';
-
-    const resp = await fetch(config.spdfUrl + currentTool.endpoint, {
-      method: 'POST', body: fd
-    });
-
-    if (!resp.ok) {
-      const errText = await resp.text();
-      throw new Error(`HTTP ${resp.status}: ${errText.substring(0,200)}`);
-    }
-
-    progress.style.width = '80%';
-    const contentType = resp.headers.get('Content-Type') || '';
-    const blob = await resp.blob();
-
-    if (contentType.includes('application/pdf') || contentType.includes('octet-stream')) {
-      const url = URL.createObjectURL(blob);
-      const dl = document.getElementById('downloadLink');
-      dl.href = url; dl.download = 'result.pdf';
-      footer.style.display = 'flex';
-      status.textContent = `\u2705 处理完成！(${(blob.size/1024).toFixed(1)}KB)`;
-    } else if (contentType.includes('json')) {
-      const data = await blob.text();
-      area.innerHTML = `<pre>${JSON.stringify(JSON.parse(data), null, 2)}</pre>`;
-    } else {
-      const text = await blob.text();
-      area.innerHTML = `<pre>${text.substring(0,2000)}</pre>`;
-    }
-    area.classList.add('show');
-    progress.style.width = '100%';
-
-  } catch(e) {
-    status.textContent = `\u274c 错误: ${e.message}`;
-    area.innerHTML = `<pre style="color:var(--danger)">${e.message}</pre>`;
-    area.classList.add('show');
-  }
-}
-
-function closeResult() {
-  document.getElementById('resultOverlay').classList.remove('show');
-}
-
-// ============================================================
-// Utilities
-// ============================================================
-function showLoading(text) {
-  document.getElementById('loadingText').textContent = text || '加载中...';
-  document.getElementById('loadingOverlay').classList.add('show');
-}
-
-function hideLoading() {
-  document.getElementById('loadingOverlay').classList.remove('show');
-}
-
-function showToast(msg) {
-  const indicator = document.getElementById('bookmarkIndicator');
-  indicator.textContent = msg;
-  indicator.classList.add('show');
-  setTimeout(() => indicator.classList.remove('show'), 2000);
-}
-
-// Start
-init();
-</script>
+<script src="js/app.js"></script>
 </body>
 </html>
