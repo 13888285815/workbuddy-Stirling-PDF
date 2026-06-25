@@ -9,103 +9,164 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <!-- 头部 -->
-    <header class="header">
-      <div class="logo">
-        <span class="logo-icon">📄</span>
-        <h1>WorkBuddy PDF 工具箱</h1>
+
+<div id="app" class="app-layout">
+
+  <!-- 顶部工具栏 -->
+  <header class="top-toolbar">
+    <div class="toolbar-brand">
+      <span class="brand-icon">📄</span>
+      <span class="brand-name">WorkBuddy PDF</span>
+    </div>
+    <div class="toolbar-search-wrap">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        id="global-search"
+        class="toolbar-search-input"
+        placeholder="搜索文件或工具..."
+        autocomplete="off"
+      >
+      <button id="search-clear-btn" class="search-clear-btn" style="display:none" aria-label="清除">✕</button>
+    </div>
+    <div class="toolbar-actions">
+      <button class="toolbar-btn" id="btn-filter" title="筛选">
+        <span>🔽</span><span class="btn-label">筛选</span>
+        <span class="badge" id="filter-badge" style="display:none">0</span>
+      </button>
+      <button class="toolbar-btn" id="btn-sort" title="排序">
+        <span>↕️</span><span class="btn-label">排序</span>
+      </button>
+      <button class="toolbar-btn" id="btn-grid" title="网格视图">▦</button>
+      <button class="toolbar-btn" id="btn-list" title="列表视图">≡</button>
+      <button class="toolbar-btn" id="btn-upload" title="上传文件">⬆️</button>
+    </div>
+  </header>
+
+  <!-- 主体区域 -->
+  <div class="app-body">
+
+    <!-- 左侧边栏 -->
+    <aside class="left-sidebar" id="left-sidebar">
+
+      <!-- 侧边栏标签 -->
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" data-tab="files" id="tab-files">
+          <span>📁</span><span>文件</span>
+        </button>
+        <button class="sidebar-tab" data-tab="tools" id="tab-tools">
+          <span>🛠️</span><span>工具</span>
+        </button>
       </div>
-      <p class="subtitle">免费、安全、高效的在线 PDF 处理工具</p>
-    </header>
 
-    <!-- 功能卡片区域 -->
-    <main class="main">
-      <div class="tools-grid">
-        <!-- PDF 合并 -->
-        <div class="tool-card" onclick="showTool('merge')">
-          <div class="tool-icon">🔗</div>
-          <h3>PDF 合并</h3>
-          <p>将多个 PDF 文件合并为一个</p>
+      <!-- 文件树 -->
+      <div class="sidebar-content" id="panel-files">
+        <div class="tree-search-wrap">
+          <input type="text" id="tree-search" class="tree-search-input" placeholder="过滤文件...">
         </div>
-
-        <!-- PDF 分割 -->
-        <div class="tool-card" onclick="showTool('split')">
-          <div class="tool-icon">✂️</div>
-          <h3>PDF 分割</h3>
-          <p>将 PDF 按页面分割成多个文件</p>
+        <div class="tree-container" id="file-tree">
+          <div class="tree-empty">暂无文件</div>
         </div>
+      </div>
 
-        <!-- PDF 转图片 -->
-        <div class="tool-card" onclick="showTool('pdf2img')">
-          <div class="tool-icon">🖼️</div>
-          <h3>PDF 转图片</h3>
-          <p>将 PDF 页面转换为图片</p>
+      <!-- 工具目录树 -->
+      <div class="sidebar-content" id="panel-tools" style="display:none">
+        <div class="tree-search-wrap">
+          <input type="text" id="tools-tree-search" class="tree-search-input" placeholder="搜索工具...">
         </div>
-
-        <!-- 图片转 PDF -->
-        <div class="tool-card" onclick="showTool('img2pdf')">
-          <div class="tool-icon">📸</div>
-          <h3>图片转 PDF</h3>
-          <p>将图片合并为 PDF 文件</p>
+        <div class="tree-container" id="tools-tree">
+          <!-- 动态渲染 -->
         </div>
+      </div>
 
-        <!-- PDF 压缩 -->
-        <div class="tool-card" onclick="showTool('compress')">
-          <div class="tool-icon">📦</div>
-          <h3>PDF 压缩</h3>
-          <p>减小 PDF 文件大小</p>
+      <!-- 侧边栏宽度拖拽 -->
+      <div class="sidebar-resizer" id="sidebar-resizer"></div>
+    </aside>
+
+    <!-- 右侧主内容区 -->
+    <main class="main-content" id="main-content">
+      <!-- 工具面板（激活工具时覆盖） -->
+      <div id="tool-panel" class="tool-panel" style="display:none">
+        <div class="panel-header">
+          <button class="back-btn" onclick="hideTool()">← 返回</button>
+          <h2 id="tool-title">工具名称</h2>
         </div>
-
-        <!-- 添加水印 -->
-        <div class="tool-card" onclick="showTool('watermark')">
-          <div class="tool-icon">💧</div>
-          <h3>添加水印</h3>
-          <p>为 PDF 添加文字或图片水印</p>
+        <div id="tool-content" class="panel-content">
+          <!-- 动态加载工具内容 -->
         </div>
+      </div>
 
-        <!-- PDF 旋转 -->
-        <div class="tool-card" onclick="showTool('rotate')">
-          <div class="tool-icon">🔄</div>
-          <h3>PDF 旋转</h3>
-          <p>旋转 PDF 页面方向</p>
+      <!-- 文件浏览区 -->
+      <div id="browse-area" class="browse-area">
+        <div id="browse-toolbar" class="browse-toolbar">
+          <span class="browse-path" id="browse-path">我的文件</span>
+          <span class="browse-count" id="browse-count"></span>
         </div>
-
-        <!-- PDF 删除页面 -->
-        <div class="tool-card" onclick="showTool('delete')">
-          <div class="tool-icon">🗑️</div>
-          <h3>删除页面</h3>
-          <p>删除 PDF 中的指定页面</p>
+        <div id="file-grid" class="file-grid">
+          <div class="file-grid-empty">
+            <div class="empty-icon">📂</div>
+            <div class="empty-text">暂无文件</div>
+            <div class="empty-hint">点击上方「上传」按钮添加文件</div>
+          </div>
         </div>
       </div>
     </main>
 
-    <!-- 工具操作面板 -->
-    <div id="tool-panel" class="tool-panel hidden">
-      <div class="panel-header">
-        <button class="back-btn" onclick="hideTool()">← 返回</button>
-        <h2 id="tool-title">工具名称</h2>
+  </div><!-- /app-body -->
+
+</div><!-- /app-layout -->
+
+<!-- 排序下拉 -->
+<div id="sort-dropdown" class="dropdown-menu" style="display:none">
+  <button class="dropdown-item active" data-sort="modified-desc">🕐 最近修改</button>
+  <button class="dropdown-item" data-sort="modified-asc">🕐 最早修改</button>
+  <button class="dropdown-item" data-sort="name-asc">🔤 名称 A→Z</button>
+  <button class="dropdown-item" data-sort="name-desc">🔤 名称 Z→A</button>
+  <button class="dropdown-item" data-sort="size-desc">📦 最大优先</button>
+  <button class="dropdown-item" data-sort="size-asc">📦 最小优先</button>
+</div>
+
+<!-- 筛选面板 -->
+<div id="filter-panel" class="dropdown-menu" style="display:none">
+  <div class="filter-section">
+    <div class="filter-label">文件类型</div>
+    <label class="filter-check"><input type="checkbox" value="pdf" checked> PDF</label>
+    <label class="filter-check"><input type="checkbox" value="img" checked> 图片</label>
+    <label class="filter-check"><input type="checkbox" value="doc" checked> 文档</label>
+  </div>
+</div>
+
+<!-- 上传 input（隐藏） -->
+<input type="file" id="hidden-file-input" multiple accept=".pdf,image/*,.doc,.docx,.txt" style="display:none">
+
+<!-- 加载提示 -->
+<div id="loading" class="loading" style="display:none">
+  <div class="loading-spinner"></div>
+  <p id="loading-text">正在处理...</p>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast" style="display:none"></div>
+
+<!-- 上传确认弹层 -->
+<div id="upload-overlay" class="upload-overlay" style="display:none">
+  <div class="upload-dialog">
+    <div class="upload-dialog-header">上传文件</div>
+    <div class="upload-dialog-body" id="upload-dialog-body">
+      <div class="upload-drop-zone" id="upload-drop-zone">
+        <div class="upload-icon">📁</div>
+        <div class="upload-text">点击或拖拽上传文件</div>
+        <div class="upload-hint">支持 PDF、图片、文档</div>
       </div>
-      <div id="tool-content" class="panel-content">
-        <!-- 动态加载工具内容 -->
-      </div>
+      <div class="upload-file-list" id="upload-file-list"></div>
     </div>
-
-    <!-- 页脚 -->
-    <footer class="footer">
-      <p>© 2024 WorkBuddy PDF 工具箱 | 所有操作均在本地完成，文件不会上传到服务器</p>
-    </footer>
+    <div class="upload-dialog-footer">
+      <button class="btn btn-ghost" onclick="closeUploadDialog()">取消</button>
+      <button class="btn btn-primary" id="upload-confirm-btn" onclick="confirmUpload()" disabled>确认上传</button>
+    </div>
   </div>
+</div>
 
-  <!-- 加载提示 -->
-  <div id="loading" class="loading hidden">
-    <div class="loading-spinner"></div>
-    <p>正在处理...</p>
-  </div>
-
-  <!-- Toast 提示 -->
-  <div id="toast" class="toast hidden"></div>
-
-  <script src="js/app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
