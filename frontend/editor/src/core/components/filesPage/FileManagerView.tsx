@@ -699,6 +699,39 @@ export default function FileManagerView() {
     window.addEventListener("files-page:focus-search", onFocus);
     return () => window.removeEventListener("files-page:focus-search", onFocus);
   }, []);
+
+  // 全局事件监听 - 来自 HomePage 顶部工具栏
+  useEffect(() => {
+    // 搜索事件
+    const onSearch = (e: Event) => {
+      const value = (e as CustomEvent<string>).detail;
+      setSearch(value);
+    };
+    // 视图切换事件
+    const onViewChange = (e: Event) => {
+      const mode = (e as CustomEvent<string>).detail as "grid" | "list";
+      setViewMode(mode);
+    };
+    // 排序循环事件
+    const onCycleSort = () => {
+      const sortModes: Array<"name-asc" | "name-desc" | "date-asc" | "date-desc" | "size-asc" | "size-desc"> = [
+        "name-asc", "name-desc", "date-asc", "date-desc", "size-asc", "size-desc"
+      ];
+      const currentIndex = sortModes.indexOf(sortMode);
+      const nextIndex = (currentIndex + 1) % sortModes.length;
+      setSortMode(sortModes[nextIndex]);
+    };
+
+    window.addEventListener("files-page:search", onSearch);
+    window.addEventListener("files-page:view-change", onViewChange);
+    window.addEventListener("files-page:cycle-sort", onCycleSort);
+
+    return () => {
+      window.removeEventListener("files-page:search", onSearch);
+      window.removeEventListener("files-page:view-change", onViewChange);
+      window.removeEventListener("files-page:cycle-sort", onCycleSort);
+    };
+  }, [setSearch, setViewMode, setSortMode, sortMode]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const active = document.activeElement as HTMLElement | null;
@@ -1447,6 +1480,7 @@ export default function FileManagerView() {
               selectedFileIds={selectedFileIds}
               activeWorkspaceFileIds={activeWorkspaceFileIdSet}
               viewMode={viewMode}
+              searchQuery={search}
               sortMode={sortMode}
               onChangeSortMode={setSortMode}
               onSelectFile={handleSelectFile}

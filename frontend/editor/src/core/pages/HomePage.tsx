@@ -42,6 +42,7 @@ import {
 import { useFolders } from "@app/contexts/FolderContext";
 import { useFileHandler } from "@app/hooks/useFileHandler";
 import { FolderTreePanel } from "@app/components/filesPage/FolderTreePanel";
+import { CatalogTreePanel } from "@app/components/filesPage/CatalogTreePanel";
 import type { FileSidebarProps } from "@app/components/shared/FileSidebar";
 
 import "@app/pages/HomePage.css";
@@ -96,6 +97,19 @@ export default function HomePage() {
   const [activeMobileView, setActiveMobileView] = useState<MobileView>("tools");
   const isProgrammaticScroll = useRef(false);
   const [configModalOpen, setConfigModalOpen] = useState(false);
+  // Left sidebar tab: "files" for FolderTreePanel, "tools" for CatalogTreePanel
+  const [leftSidebarTab, setLeftSidebarTab] = useState<"files" | "tools">("files");
+
+  // Handle document selection from catalog - open in viewer
+  const handleCatalogDocumentSelect = useCallback((pdfUrl: string, title: string) => {
+    if (!pdfUrl) return;
+    // Navigate to files page and load the PDF
+    navigate("/files");
+    // Dispatch event to load the PDF
+    window.dispatchEvent(new CustomEvent("catalog:open-document", {
+      detail: { url: pdfUrl, title }
+    }));
+  }, [navigate]);
   const location = useLocation();
   // Persisted user preference for the FileSidebar collapsed state. Auto-
   // collapse on /files is layered on top in the transition effect below and
@@ -309,8 +323,31 @@ export default function HomePage() {
 
   // FilesPageContext - 用于搜索和视图状态
   const filesPage = useFilesPage();
-  const { setSearch, search } = filesPage;
+  const { setSearch, search, sortMode, setSortMode, typeFilter, originFilter } = filesPage;
   const { setViewMode: setFilesPageViewMode, viewMode: filesPageViewMode } = filesPage;
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+
+  const sortModeLabels: Record<string, string> = {
+    "modified-desc": "最近修改",
+    "modified-asc": "最早修改",
+    "name-asc": "名称 A→Z",
+    "name-desc": "名称 Z→A",
+    "size-desc": "最大优先",
+    "size-asc": "最小优先",
+  };
+
+  // Close sort dropdown when clicking outside
+  useEffect(() => {
+    if (!sortDropdownOpen) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".sort-dropdown-container")) {
+        setSortDropdownOpen(false);
+      }
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, [sortDropdownOpen]);
 
   // 搜索状态 - 本地用于搜索框显示
   const [searchQuery, setSearchQuery] = useState(search || "");
@@ -534,31 +571,51 @@ export default function HomePage() {
                       <CloseIcon sx={{ fontSize: "1rem" }} />
                     </button>
                   )}
+                  {!searchQuery && (
+                    <span className="search-input-shortcut" aria-hidden="true">/</span>
+                  )}
                 </div>
               </div>
               <div className="top-toolbar-right">
                 <button
-                  className="toolbar-button"
+                  className={`toolbar-button ${typeFilter.length > 0 || originFilter !== "all" ? "active" : ""}`}
                   aria-label={t("home.filter", "Filter")}
                   onClick={() => {
-                    // 切换过滤器面板
                     window.dispatchEvent(new Event("files-page:toggle-filter"));
                   }}
                 >
                   <FilterIcon />
                   <span>{t("home.filter", "Filter")}</span>
+                  {typeFilter.length > 0 && (
+                    <span className="toolbar-badge">{typeFilter.length}</span>
+                  )}
                 </button>
-                <button
-                  className="toolbar-button"
-                  aria-label={t("home.sort", "Sort")}
-                  onClick={() => {
-                    // 切换排序方式
-                    window.dispatchEvent(new Event("files-page:cycle-sort"));
-                  }}
-                >
-                  <SortIcon />
-                  <span>{t("home.sort", "Sort")}</span>
-                </button>
+                <div className="sort-dropdown-container">
+                  <button
+                    className="toolbar-button sort-button"
+                    aria-label={t("home.sort", "Sort")}
+                    onClick={() => setSortDropdownOpen(!sortDropdownOpen)}
+                  >
+                    <SortIcon />
+                    <span>{sortModeLabels[sortMode] || t("home.sort", "Sort")}</span>
+                  </button>
+                  {sortDropdownOpen && (
+                    <div className="sort-dropdown-menu">
+                      {Object.entries(sortModeLabels).map(([mode, label]) => (
+                        <button
+                          key={mode}
+                          className={`sort-option ${sortMode === mode ? "active" : ""}`}
+                          onClick={() => {
+                            setSortMode(mode as typeof sortMode);
+                            setSortDropdownOpen(false);
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button
                   className="toolbar-button"
                   aria-label={t("home.view", "Toggle view")}
@@ -579,9 +636,47 @@ export default function HomePage() {
 
             {/* 主内容区域 */}
             <div className="main-content flex-1 flex overflow-hidden">
-              {/* 左侧边栏 - 文件夹树形结构 */}
+              {/* 左侧边栏 - 文件夹树形结构 / 工具目录 */}
               <div className="left-sidebar-container">
-                <FolderTreePanel active={true} />
+                {/* 侧边栏标签切换 */}
+                <div className="left-sidebar-tabs">
+                  <button
+                    className={`left-sidebar-tab ${leftSidebarTab === "files" ? "active" : ""}`}
+                    onClick={() => setLeftSidebarTab("files")}
+                    title="我的文件"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+                    </svg>
+                    <span>文件</span>
+                  </button>
+                  <button
+                    className={`left-sidebar-tab ${leftSidebarTab === "tools" ? "active" : ""}`}
+                    onClick={() => setLeftSidebarTab("tools")}
+                    title="PDF工具"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>
+                    </svg>
+                    <span>工具</span>
+                  </button>
+                </div>
+
+                {/* 侧边栏内容区 */}
+                <div className="left-sidebar-content">
+                  {leftSidebarTab === "files" ? (
+                    <FolderTreePanel active={true} />
+                  ) : (
+                    <CatalogTreePanel
+                      onToolSelect={(tool) => {
+                        if (tool.id) {
+                          handleToolSelect(tool.id);
+                        }
+                      }}
+                      onDocumentSelect={handleCatalogDocumentSelect}
+                    />
+                  )}
+                </div>
               </div>
 
               {/* 右侧浏览区 */}

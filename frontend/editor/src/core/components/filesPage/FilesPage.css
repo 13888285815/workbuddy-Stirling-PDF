@@ -476,6 +476,15 @@
   letter-spacing: -0.005em;
 }
 
+/* 搜索高亮 */
+.files-page-search-highlight {
+  background: rgba(255, 213, 79, 0.35);
+  color: inherit;
+  border-radius: 2px;
+  padding: 0 1px;
+  font-weight: 700;
+}
+
 .files-page-card-meta {
   font-size: 0.76rem;
   color: var(--text-muted);

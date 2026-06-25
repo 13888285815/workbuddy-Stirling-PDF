@@ -1,0 +1,343 @@
+/* CatalogTreePanel - PDF工具目录树样式 */
+
+.catalog-tree-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-background);
+  overflow: hidden;
+}
+
+.catalog-tree-loading {
+  padding: 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* Header */
+.catalog-tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.catalog-tree-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.catalog-search-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.catalog-search-toggle:hover,
+.catalog-search-toggle.active {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Search */
+.catalog-search-container {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  margin: 4px 8px;
+  background: var(--bg-toolbar);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  gap: 6px;
+  animation: slideDown 0.15s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.catalog-search-icon {
+  color: var(--text-muted);
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.catalog-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: 0.8125rem;
+  min-width: 0;
+}
+
+.catalog-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.catalog-search-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.catalog-search-clear:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Content */
+.catalog-tree-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+}
+
+/* Category */
+.catalog-category {
+  margin-bottom: 2px;
+}
+
+.catalog-category-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  gap: 6px;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.catalog-category-header:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.catalog-category-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.catalog-category-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.catalog-category-icon svg {
+  font-size: 16px !important;
+}
+
+.catalog-category-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalog-category-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--bg-toolbar);
+  padding: 1px 6px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.catalog-category-content {
+  animation: expandIn 0.18s ease;
+}
+
+@keyframes expandIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tree nodes */
+.catalog-tree-node-container {
+  width: 100%;
+}
+
+.catalog-tree-node {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 5px 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  gap: 6px;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.catalog-tree-node:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.catalog-tree-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.catalog-tree-toggle svg {
+  font-size: 16px !important;
+}
+
+.catalog-tree-spacer {
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.catalog-tree-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.catalog-tree-icon svg {
+  font-size: 16px !important;
+}
+
+.catalog-tree-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalog-tree-children {
+  /* Children are indented via padding-left on the button */
+}
+
+/* Tool nodes */
+.catalog-tool-node {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 5px 8px 5px 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  gap: 8px;
+  border-radius: 4px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.catalog-tool-node:hover {
+  background: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.catalog-tool-node:active {
+  background: var(--bg-active, rgba(0, 0, 0, 0.1));
+}
+
+.catalog-tool-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.catalog-tool-icon svg {
+  font-size: 16px !important;
+}
+
+.catalog-tool-node:hover .catalog-tool-icon {
+  color: var(--primary-color, #228be6);
+}
+
+.catalog-tool-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalog-tool-size {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+/* Scrollbar */
+.catalog-tree-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.catalog-tree-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.catalog-tree-content::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 3px;
+}
+
+.catalog-tree-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}

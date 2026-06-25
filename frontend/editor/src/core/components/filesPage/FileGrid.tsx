@@ -51,6 +51,8 @@ export interface FilesPageEntry {
 interface FileGridProps {
   entries: FilesPageEntry[];
   selectedFileIds: Set<FileId>;
+  /** Current search query for character-level highlight. */
+  searchQuery?: string;
   /** Ids of files loaded in the active workspace. */
   activeWorkspaceFileIds?: Set<string>;
   viewMode: FilesPageViewMode;
@@ -100,6 +102,7 @@ export function FileGrid(props: FileGridProps & { loading?: boolean }) {
   const {
     viewMode,
     entries,
+    searchQuery,
     loading,
     currentTab,
     serverReachable,
@@ -370,6 +373,7 @@ function GridView({
               key={`file-${entry.file.id}`}
               file={entry.file}
               parentPath={entry.parentPath}
+              searchQuery={searchQuery}
               isSelected={selectedFileIds.has(entry.file.id)}
               isInWorkspace={
                 activeWorkspaceFileIds?.has(entry.file.id as string) ?? false
@@ -609,6 +613,8 @@ interface FileCardProps {
   isInWorkspace: boolean;
   /** Subtitle for search results outside current folder. */
   parentPath?: string;
+  /** Highlight matching characters in filename when set. */
+  searchQuery?: string;
   selectedFileIds: Set<FileId>;
   /** Shows the checkbox once 2+ files are selected. */
   multiSelectActive: boolean;
@@ -624,9 +630,30 @@ interface FileCardProps {
   saveToServerDisabledReason?: string | null;
 }
 
+/** Highlight matching characters in filename text. */
+function HighlightedName({ name, query }: { name: string; query: string }) {
+  if (!query) {
+    return <>{name}</>;
+  }
+  const lower = name.toLowerCase();
+  const lowerQuery = query.toLowerCase();
+  const idx = lower.indexOf(lowerQuery);
+  if (idx === -1) {
+    return <>{name}</>;
+  }
+  return (
+    <>
+      {name.slice(0, idx)}
+      <mark className="files-page-search-highlight">{name.slice(idx, idx + query.length)}</mark>
+      {name.slice(idx + query.length)}
+    </>
+  );
+}
+
 function FileCard({
   file,
   parentPath,
+  searchQuery,
   isSelected,
   isInWorkspace,
   selectedFileIds,
@@ -752,7 +779,7 @@ function FileCard({
       </div>
       <div className="files-page-card-body">
         <div className="files-page-card-name" title={file.name}>
-          {file.name}
+          <HighlightedName name={file.name} query={searchQuery || ""} />
         </div>
         {parentPath && (
           <div className="files-page-card-path" title={parentPath}>
