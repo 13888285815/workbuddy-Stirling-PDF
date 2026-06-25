@@ -34,6 +34,7 @@ import FileManager from "@app/components/FileManager";
 import LocalIcon from "@app/components/shared/LocalIcon";
 import AppConfigModal from "@app/components/shared/AppConfigModalLazy";
 import { getStartupNavigationAction } from "@app/utils/homePageNavigation";
+import { getApiBaseUrl } from "@app/services/apiClientConfig";
 import { HomePageExtensions } from "@app/components/home/HomePageExtensions";
 import {
   FilesPageProvider,
@@ -297,6 +298,41 @@ export default function HomePage() {
   }, [isMobile, activeMobileView, selectedTool, setLeftPanelView]);
 
   const baseUrl = useBaseUrl();
+
+  // Use file handler at top level for catalog document loading
+  const { addFiles: addFilesToWorkspace } = useFileHandler();
+
+  // Listen for catalog:open-document event to open PDF documentation in viewer
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      const customEvent = e as CustomEvent<{ pdfUrl: string; title: string }>;
+      const { pdfUrl, title } = customEvent.detail;
+
+      try {
+        // Fetch the PDF from the backend server
+        const baseUrl = getApiBaseUrl();
+        const fullUrl = pdfUrl.startsWith("http") ? pdfUrl : `${baseUrl.replace(/\/$/, "")}${pdfUrl}`;
+        const response = await fetch(fullUrl);
+        if (!response.ok) throw new Error("Failed to fetch PDF");
+        const blob = await response.blob();
+
+        // Create a File object from the blob
+        const fileName = title.replace(/[^\w\u4e00-\u9fff.-]/g, "_") + ".pdf";
+        const file = new File([blob], fileName, { type: "application/pdf" });
+
+        // Add the file to the workspace
+        await addFilesToWorkspace([file], { selectFiles: true });
+
+        // Switch to viewer
+        actions.setWorkbench("viewer");
+      } catch (err) {
+        console.error("[HomePage] Failed to open catalog document:", err);
+      }
+    };
+
+    window.addEventListener("catalog:open-document", handler);
+    return () => window.removeEventListener("catalog:open-document", handler);
+  }, [actions]);
 
   // Update document meta when tool changes
   const appName = config?.appNameNavbar || "Stirling PDF";
