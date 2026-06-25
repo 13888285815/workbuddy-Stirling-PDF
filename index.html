@@ -1,170 +1,207 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WorkBuddy PDF 工具箱</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WorkBuddy PDF 工具箱</title>
+<meta name="description" content="免费在线 PDF 工具集，支持合并、拆分、压缩、水印、OCR 等 80+ 功能">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
+<div class="container">
 
-<div id="app" class="app-layout">
-
-  <!-- 顶部工具栏 -->
-  <header class="top-toolbar">
-    <div class="toolbar-brand">
-      <span class="brand-icon">📄</span>
-      <span class="brand-name">WorkBuddy PDF</span>
+  <!-- ══ 顶部检索功能区 ══ -->
+  <header class="top-bar">
+    <button class="menu-toggle" onclick="toggleSidebar()" title="目录"><i class="fas fa-bars"></i></button>
+    <div class="logo">
+      <i class="fas fa-file-pdf"></i>
+      <span class="logo-text">WorkBuddy PDF</span>
+      <span class="logo-sub">工具箱</span>
     </div>
-    <div class="toolbar-search-wrap">
-      <span class="search-icon">🔍</span>
-      <input
-        type="text"
-        id="global-search"
-        class="toolbar-search-input"
-        placeholder="搜索文件或工具..."
-        autocomplete="off"
-      >
-      <button id="search-clear-btn" class="search-clear-btn" style="display:none" aria-label="清除">✕</button>
+    <div class="search-global">
+      <i class="fas fa-search"></i>
+      <input id="globalSearch" type="text" placeholder="搜索工具或文档..."
+             oninput="onSearch(this.value)" autocomplete="off">
+      <kbd class="search-kbd">/</kbd>
     </div>
-    <div class="toolbar-actions">
-      <button class="toolbar-btn" id="btn-filter" title="筛选">
-        <span>🔽</span><span class="btn-label">筛选</span>
-        <span class="badge" id="filter-badge" style="display:none">0</span>
-      </button>
-      <button class="toolbar-btn" id="btn-sort" title="排序">
-        <span>↕️</span><span class="btn-label">排序</span>
-      </button>
-      <button class="toolbar-btn" id="btn-grid" title="网格视图">▦</button>
-      <button class="toolbar-btn" id="btn-list" title="列表视图">≡</button>
-      <button class="toolbar-btn" id="btn-upload" title="上传文件">⬆️</button>
+    <div class="top-actions">
+      <button class="tbtn" onclick="toggleSortMenu()" title="排序" id="btnSort"><i class="fas fa-sort"></i></button>
+      <button class="tbtn" onclick="toggleFilterPanel()" title="筛选" id="btnFilter"><i class="fas fa-filter"></i></button>
+      <button class="tbtn active" onclick="setView('grid')" id="btnGrid" title="网格"><i class="fas fa-th-large"></i></button>
+      <button class="tbtn" onclick="setView('list')" id="btnList" title="列表"><i class="fas fa-list"></i></button>
     </div>
   </header>
 
-  <!-- 主体区域 -->
-  <div class="app-body">
+  <!-- ══ 主体三区 ══ -->
+  <section class="main">
 
-    <!-- 左侧边栏 -->
-    <aside class="left-sidebar" id="left-sidebar">
+    <!-- 左侧边栏遮罩（移动端） -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar()"></div>
 
-      <!-- 侧边栏标签 -->
-      <div class="sidebar-tabs">
-        <button class="sidebar-tab active" data-tab="files" id="tab-files">
-          <span>📁</span><span>文件</span>
-        </button>
-        <button class="sidebar-tab" data-tab="tools" id="tab-tools">
-          <span>🛠️</span><span>工具</span>
-        </button>
+    <!-- ══ 左侧树形结构 ══ -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h3><i class="fas fa-folder-tree"></i> 功能目录</h3>
+        <span class="count-badge" id="toolCount">加载中…</span>
       </div>
-
-      <!-- 文件树 -->
-      <div class="sidebar-content" id="panel-files">
-        <div class="tree-search-wrap">
-          <input type="text" id="tree-search" class="tree-search-input" placeholder="过滤文件...">
-        </div>
-        <div class="tree-container" id="file-tree">
-          <div class="tree-empty">暂无文件</div>
-        </div>
+      <div class="search-box">
+        <input id="treeSearch" type="text" placeholder="筛选功能…"
+               oninput="onSearch(this.value)" autocomplete="off">
       </div>
-
-      <!-- 工具目录树 -->
-      <div class="sidebar-content" id="panel-tools" style="display:none">
-        <div class="tree-search-wrap">
-          <input type="text" id="tools-tree-search" class="tree-search-input" placeholder="搜索工具...">
-        </div>
-        <div class="tree-container" id="tools-tree">
-          <!-- 动态渲染 -->
-        </div>
-      </div>
-
-      <!-- 侧边栏宽度拖拽 -->
-      <div class="sidebar-resizer" id="sidebar-resizer"></div>
+      <div class="tree-wrap" id="treeWrap"></div>
     </aside>
 
-    <!-- 右侧主内容区 -->
-    <main class="main-content" id="main-content">
-      <!-- 工具面板（激活工具时覆盖） -->
-      <div id="tool-panel" class="tool-panel" style="display:none">
-        <div class="panel-header">
-          <button class="back-btn" onclick="hideTool()">← 返回</button>
-          <h2 id="tool-title">工具名称</h2>
+    <div class="splitter-v" id="splitterV"></div>
+
+    <!-- ══ 右侧浏览区 ══ -->
+    <main class="preview-area" id="previewArea">
+
+      <!-- 浏览区工具栏 -->
+      <div class="preview-toolbar" id="previewToolbar">
+        <div class="tool-group">
+          <button class="tbtn" onclick="goBack()" title="返回"><i class="fas fa-arrow-left"></i></button>
         </div>
-        <div id="tool-content" class="panel-content">
-          <!-- 动态加载工具内容 -->
+        <div class="tool-sep"></div>
+        <div class="tool-group" id="gridViewGroup">
+          <button class="tbtn active" onclick="setView('grid')" id="btnGridT" title="网格视图"><i class="fas fa-th-large"></i></button>
+          <button class="tbtn" onclick="setView('list')" id="btnListT" title="列表视图"><i class="fas fa-list"></i></button>
         </div>
+        <div class="tool-sep"></div>
+        <div class="tool-group">
+          <button class="tbtn" onclick="toggleSortMenu()" title="排序" id="btnSortT"><i class="fas fa-sort"></i></button>
+          <button class="tbtn" onclick="toggleFilterPanel()" title="筛选" id="btnFilterT"><i class="fas fa-filter"></i></button>
+        </div>
+        <div class="tool-sep"></div>
+        <div class="tool-group">
+          <button class="tbtn" onclick="uploadFiles()" title="上传文件"><i class="fas fa-upload"></i></button>
+        </div>
+        <div class="browse-info" id="browseInfo"></div>
       </div>
 
-      <!-- 文件浏览区 -->
-      <div id="browse-area" class="browse-area">
-        <div id="browse-toolbar" class="browse-toolbar">
-          <span class="browse-path" id="browse-path">我的文件</span>
-          <span class="browse-count" id="browse-count"></span>
+      <!-- 排序下拉 -->
+      <div class="dropdown-menu" id="sortMenu" style="display:none">
+        <div class="dropdown-title">排序方式</div>
+        <button class="dropdown-item active" data-sort="default" onclick="setSort('default')"><i class="fas fa-check"></i> 默认排序</button>
+        <button class="dropdown-item" data-sort="name-asc" onclick="setSort('name-asc')"><i class="fas fa-check"></i> 名称 A→Z</button>
+        <button class="dropdown-item" data-sort="name-desc" onclick="setSort('name-desc')"><i class="fas fa-check"></i> 名称 Z→A</button>
+      </div>
+
+      <!-- 筛选面板 -->
+      <div class="filter-panel" id="filterPanel" style="display:none">
+        <div class="filter-title">工具类型</div>
+        <label class="filter-check"><input type="checkbox" value="tool" checked onchange="onFilterChange()"> <i class="fas fa-wrench"></i> PDF工具</label>
+        <label class="filter-check"><input type="checkbox" value="doc" checked onchange="onFilterChange()"> <i class="fas fa-file-alt"></i> 文档资料</label>
+        <label class="filter-check"><input type="checkbox" value="file" checked onchange="onFilterChange()"> <i class="fas fa-folder"></i> 我的文件</label>
+      </div>
+
+      <!-- 浏览内容 -->
+      <div class="preview-body" id="previewBody">
+
+        <!-- 空状态 -->
+        <div class="empty-state" id="emptyState">
+          <i class="fas fa-magic"></i>
+          <h3>WorkBuddy PDF 工具箱</h3>
+          <p>从左侧选择功能开始使用，支持合并、拆分、压缩、OCR 等 80+ PDF 操作</p>
+          <span>按 <kbd>/</kbd> 快速搜索 · <kbd>?</kbd> 查看帮助</span>
         </div>
-        <div id="file-grid" class="file-grid">
-          <div class="file-grid-empty">
-            <div class="empty-icon">📂</div>
-            <div class="empty-text">暂无文件</div>
-            <div class="empty-hint">点击上方「上传」按钮添加文件</div>
+
+        <!-- 网格视图 -->
+        <div class="grid-view" id="gridView" style="display:none">
+          <!-- 动态渲染 -->
+        </div>
+
+        <!-- 列表视图 -->
+        <div class="list-view" id="listView" style="display:none">
+          <!-- 动态渲染 -->
+        </div>
+
+        <!-- 工具面板（点击工具后展开） -->
+        <div class="tool-panel" id="toolPanel" style="display:none">
+          <div class="tool-panel-header">
+            <button class="tbtn" onclick="hideToolPanel()"><i class="fas fa-arrow-left"></i></button>
+            <h2 id="toolPanelTitle"></h2>
+          </div>
+          <div class="tool-panel-body" id="toolPanelBody">
+            <!-- 动态加载 -->
           </div>
         </div>
-      </div>
+
+      </div><!-- /preview-body -->
     </main>
 
-  </div><!-- /app-body -->
+  </section>
 
-</div><!-- /app-layout -->
+  <!-- 状态栏 -->
+  <footer class="status-bar">
+    <span id="statusMsg"><i class="fas fa-circle"></i> 就绪</span>
+    <span id="statusCount"></span>
+    <span id="statusFilter" style="display:none">筛选: 无</span>
+    <span style="margin-left:auto" id="statusView">视图: 网格</span>
+  </footer>
 
-<!-- 排序下拉 -->
-<div id="sort-dropdown" class="dropdown-menu" style="display:none">
-  <button class="dropdown-item active" data-sort="modified-desc">🕐 最近修改</button>
-  <button class="dropdown-item" data-sort="modified-asc">🕐 最早修改</button>
-  <button class="dropdown-item" data-sort="name-asc">🔤 名称 A→Z</button>
-  <button class="dropdown-item" data-sort="name-desc">🔤 名称 Z→A</button>
-  <button class="dropdown-item" data-sort="size-desc">📦 最大优先</button>
-  <button class="dropdown-item" data-sort="size-asc">📦 最小优先</button>
+</div><!-- /container -->
+
+<!-- 移动端底部工具栏 -->
+<div class="mobile-bottom-bar" id="mobileBottomBar">
+  <div class="mb-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i><span>目录</span></div>
+  <div class="mb-btn" onclick="setView('grid')"><i class="fas fa-th-large"></i><span>网格</span></div>
+  <div class="mb-btn" onclick="setView('list')"><i class="fas fa-list"></i><span>列表</span></div>
+  <div class="mb-btn" onclick="uploadFiles()"><i class="fas fa-upload"></i><span>上传</span></div>
 </div>
 
-<!-- 筛选面板 -->
-<div id="filter-panel" class="dropdown-menu" style="display:none">
-  <div class="filter-section">
-    <div class="filter-label">文件类型</div>
-    <label class="filter-check"><input type="checkbox" value="pdf" checked> PDF</label>
-    <label class="filter-check"><input type="checkbox" value="img" checked> 图片</label>
-    <label class="filter-check"><input type="checkbox" value="doc" checked> 文档</label>
+<!-- 浮动目录按钮 -->
+<button class="sidebar-float-toggle" id="sidebarFloatToggle" onclick="toggleSidebar()" title="功能目录">
+  <i class="fas fa-folder-tree"></i>
+</button>
+
+<!-- 上传弹层 -->
+<div class="modal-overlay" id="uploadModal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><i class="fas fa-upload"></i> 上传文件</h3>
+      <button class="modal-close" onclick="closeUploadModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="upload-drop-zone" id="uploadDropZone">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <p>点击或拖拽上传文件</p>
+        <span>支持 PDF、图片、文档</span>
+        <input type="file" id="fileInput" multiple accept=".pdf,image/*,.doc,.docx,.txt" hidden>
+      </div>
+      <div class="upload-file-list" id="uploadFileList"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="mbtn mbtn-cancel" onclick="closeUploadModal()">取消</button>
+      <button class="mbtn mbtn-primary" id="uploadConfirmBtn" onclick="confirmUpload()" disabled>确认上传</button>
+    </div>
   </div>
-</div>
-
-<!-- 上传 input（隐藏） -->
-<input type="file" id="hidden-file-input" multiple accept=".pdf,image/*,.doc,.docx,.txt" style="display:none">
-
-<!-- 加载提示 -->
-<div id="loading" class="loading" style="display:none">
-  <div class="loading-spinner"></div>
-  <p id="loading-text">正在处理...</p>
 </div>
 
 <!-- Toast -->
-<div id="toast" class="toast" style="display:none"></div>
+<div class="toast" id="toast"></div>
 
-<!-- 上传确认弹层 -->
-<div id="upload-overlay" class="upload-overlay" style="display:none">
-  <div class="upload-dialog">
-    <div class="upload-dialog-header">上传文件</div>
-    <div class="upload-dialog-body" id="upload-dialog-body">
-      <div class="upload-drop-zone" id="upload-drop-zone">
-        <div class="upload-icon">📁</div>
-        <div class="upload-text">点击或拖拽上传文件</div>
-        <div class="upload-hint">支持 PDF、图片、文档</div>
-      </div>
-      <div class="upload-file-list" id="upload-file-list"></div>
-    </div>
-    <div class="upload-dialog-footer">
-      <button class="btn btn-ghost" onclick="closeUploadDialog()">取消</button>
-      <button class="btn btn-primary" id="upload-confirm-btn" onclick="confirmUpload()" disabled>确认上传</button>
-    </div>
-  </div>
+<!-- 快捷键提示 -->
+<div class="shortcut-hint" id="shortcutHint" style="display:none">
+  <h4><i class="fas fa-keyboard"></i> 快捷键</h4>
+  <div><span>搜索</span><kbd>/</kbd></div>
+  <div><span>目录</span><kbd>T</kbd></div>
+  <div><span>网格视图</span><kbd>G</kbd></div>
+  <div><span>列表视图</span><kbd>L</kbd></div>
+  <div><span>上传</span><kbd>U</kbd></div>
+  <div><span>帮助</span><kbd>?</kbd></div>
+</div>
+
+<!-- 右键菜单 -->
+<div id="contextMenu" style="display:none;position:fixed;z-index:9999;min-width:180px;background:rgba(17,26,62,.98);border:1px solid rgba(124,93,252,.3);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:6px 0;backdrop-filter:blur(12px)">
+  <div class="ctx-item" onclick="ctxAction('run')"><i class="fas fa-play"></i> 启动工具</div>
+  <div class="ctx-item" onclick="ctxAction('open')"><i class="fas fa-external-link-alt"></i> 新窗口打开</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctxAction('copy')"><i class="fas fa-copy"></i> 复制链接</div>
+  <div class="ctx-item" onclick="ctxAction('share')"><i class="fas fa-share"></i> 分享</div>
 </div>
 
 <script src="js/app.js"></script>
