@@ -1,0 +1,461 @@
+/* 意念PDF编辑器 - 核心样式 */
+:root {
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --bg-dark: #1e1e2e;
+  --bg-panel: #2d2d44;
+  --text-light: #e0e0e0;
+  --accent: #7c5cff;
+  --toolbar-bg: #252540;
+  --canvas-bg: #3a3a5c;
+  --shadow: 0 4px 12px rgba(0,0,0,0.3);
+  --border: 1px solid #444;
+}
+
+[data-theme="light"] {
+  --bg-dark: #f5f5f5;
+  --bg-panel: #ffffff;
+  --text-light: #333333;
+  --toolbar-bg: #eaeaea;
+  --canvas-bg: #ffffff;
+  --shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --border: 1px solid #ddd;
+}
+
+[data-theme="high-contrast"] {
+  --primary: #ffff00;
+  --bg-dark: #000000;
+  --bg-panel: #000000;
+  --text-light: #ffffff;
+  --accent: #ffff00;
+  --toolbar-bg: #000000;
+  --canvas-bg: #000000;
+  --border: 1px solid #ffff00;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-light);
+  overflow: hidden;
+  height: 100vh;
+}
+
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* 工具栏 */
+.toolbar {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: var(--toolbar-bg);
+  border-bottom: var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border-right: 1px solid #555;
+}
+
+.toolbar-group:last-child {
+  border-right: none;
+}
+
+.tool-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-light);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tool-btn:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: var(--accent);
+}
+
+.tool-btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.tool-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zoom-value {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* 主内容区 */
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 侧边栏 - 缩略图 */
+.sidebar {
+  width: 200px;
+  background: var(--bg-panel);
+  border-right: var(--border);
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.thumbnail {
+  position: relative;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+  aspect-ratio: 210/297;
+}
+
+.thumbnail:hover {
+  border-color: var(--accent);
+}
+
+.thumbnail.active {
+  border-color: var(--primary);
+}
+
+.thumbnail canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.thumbnail-number {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+/* 画布区域 */
+.canvas-area {
+  flex: 1;
+  overflow: auto;
+  padding: 20px;
+  background: var(--canvas-bg);
+  position: relative;
+}
+
+.page-container {
+  position: relative;
+  margin: 0 auto 20px;
+  box-shadow: var(--shadow);
+  background: white;
+}
+
+.page-canvas {
+  display: block;
+  max-width: 100%;
+}
+
+.annotation-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.annotation-layer.tool-active {
+  pointer-events: all;
+}
+
+/* 签名面板 */
+.signature-panel {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--bg-panel);
+  border: var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  width: 320px;
+}
+
+.signature-canvas {
+  border: 1px dashed #666;
+  border-radius: 8px;
+  cursor: crosshair;
+  background: white;
+  width: 100%;
+  height: 150px;
+}
+
+.signature-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sig-btn {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.sig-btn-primary {
+  background: var(--primary);
+  color: white;
+}
+
+.sig-btn-secondary {
+  background: rgba(255,255,255,0.1);
+  color: var(--text-light);
+}
+
+.sig-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.saved-signatures {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #444;
+}
+
+.saved-sig-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saved-sig-item:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.saved-sig-thumb {
+  width: 60px;
+  height: 30px;
+  object-fit: contain;
+  background: white;
+  border-radius: 4px;
+}
+
+/* 搜索面板 */
+.search-panel {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  background: var(--bg-panel);
+  border: var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  width: 300px;
+  display: none;
+}
+
+.search-panel.visible {
+  display: block;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-light);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.search-results {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.search-result-item {
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  background: rgba(255,255,255,0.03);
+}
+
+.search-result-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.search-match {
+  background: rgba(255,255,0,0.3);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* 表单填写 */
+.form-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.form-field {
+  position: absolute;
+  border: 2px dashed var(--accent);
+  background: rgba(124, 92, 255, 0.1);
+  cursor: text;
+  pointer-events: all;
+}
+
+.form-field:focus {
+  border-color: var(--primary);
+  background: rgba(79, 70, 229, 0.1);
+  outline: none;
+}
+
+.form-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-checkbox.checked::after {
+  content: "✓";
+  color: var(--primary);
+  font-weight: bold;
+}
+
+/* 主题切换 */
+.theme-switcher {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  gap: 8px;
+  z-index: 1000;
+}
+
+.theme-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #555;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.theme-dot:hover {
+  transform: scale(1.1);
+  border-color: var(--accent);
+}
+
+.theme-dot.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px var(--primary);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 120px;
+  }
+  
+  .toolbar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  
+  .tool-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .signature-panel {
+    width: 280px;
+  }
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-panel);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}

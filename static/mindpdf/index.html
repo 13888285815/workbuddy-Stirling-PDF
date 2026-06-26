@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>意念PDF - 专业PDF编辑器</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📄</text></svg>">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="css/editor.css">
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+  <div class="editor-container">
+    <!-- 顶部工具栏 -->
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <button class="tool-btn" id="btnSelect" title="选择工具">
+          <i class="fas fa-mouse-pointer"></i>
+        </button>
+        <button class="tool-btn" id="btnText" title="文本工具">
+          <i class="fas fa-font"></i>
+        </button>
+        <button class="tool-btn" id="btnDraw" title="绘制工具">
+          <i class="fas fa-pencil-alt"></i>
+        </button>
+        <button class="tool-btn" id="btnHighlight" title="高亮工具">
+          <i class="fas fa-highlighter"></i>
+        </button>
+      </div>
+      
+      <div class="toolbar-group">
+        <button class="tool-btn" id="btnSignature" title="签名工具">
+          <i class="fas fa-signature"></i>
+        </button>
+        <button class="tool-btn" id="btnImage" title="插入图片">
+          <i class="fas fa-image"></i>
+        </button>
+        <button class="tool-btn" id="btnForm" title="表单填写">
+          <i class="fas fa-edit"></i>
+        </button>
+      </div>
+      
+      <div class="toolbar-group">
+        <button class="tool-btn" id="btnSearch" title="搜索">
+          <i class="fas fa-search"></i>
+        </button>
+        <button class="tool-btn" id="btnUndo" title="撤销">
+          <i class="fas fa-undo"></i>
+        </button>
+        <button class="tool-btn" id="btnRedo" title="重做">
+          <i class="fas fa-redo"></i>
+        </button>
+      </div>
+      
+      <div class="toolbar-group zoom-controls">
+        <button class="tool-btn" id="btnZoomOut" title="缩小">
+          <i class="fas fa-minus"></i>
+        </button>
+        <span class="zoom-value" id="zoomValue">100%</span>
+        <button class="tool-btn" id="btnZoomIn" title="放大">
+          <i class="fas fa-plus"></i>
+        </button>
+        <button class="tool-btn" id="btnFitWidth" title="适应宽度">
+          <i class="fas fa-arrows-alt-h"></i>
+        </button>
+        <button class="tool-btn" id="btnFitPage" title="适应页面">
+          <i class="fas fa-expand"></i>
+        </button>
+      </div>
+      
+      <div class="toolbar-group">
+        <button class="tool-btn" id="btnOpen" title="打开文件">
+          <i class="fas fa-folder-open"></i>
+        </button>
+        <button class="tool-btn" id="btnSave" title="保存">
+          <i class="fas fa-save"></i>
+        </button>
+        <button class="tool-btn" id="btnDownload" title="下载">
+          <i class="fas fa-download"></i>
+        </button>
+      </div>
+    </div>
+    
+    <!-- 主内容区 -->
+    <div class="main-content">
+      <!-- 左侧缩略图侧边栏 -->
+      <div class="sidebar" id="thumbnailSidebar">
+        <h3 style="margin-bottom: 12px; font-size: 14px;">页面缩略图</h3>
+        <div id="thumbnailContainer"></div>
+      </div>
+      
+      <!-- 中央画布区域 -->
+      <div class="canvas-area" id="canvasArea">
+        <div id="pagesContainer"></div>
+        
+        <div class="empty-state" id="emptyState">
+          <i class="fas fa-file-pdf" style="font-size: 64px; opacity: 0.5;"></i>
+          <h2 style="margin: 20px 0 10px;">意念PDF编辑器</h2>
+          <p style="opacity: 0.7; margin-bottom: 20px;">打开PDF文件开始编辑</p>
+          <button class="tool-btn" id="btnOpenFile" style="background: var(--primary); color: white;">
+            <i class="fas fa-folder-open"></i>
+            打开PDF文件
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 签名面板 -->
+  <div class="signature-panel" id="signaturePanel" style="display: none;">
+    <h3 style="margin-bottom: 12px;">签名板</h3>
+    <canvas class="signature-canvas" id="signatureCanvas"></canvas>
+    <div class="signature-actions">
+      <button class="sig-btn sig-btn-secondary" id="btnClearSig">清除</button>
+      <button class="sig-btn sig-btn-primary" id="btnSaveSig">保存签名</button>
+    </div>
+    <div class="saved-signatures" id="savedSignatures"></div>
+  </div>
+  
+  <!-- 搜索面板 -->
+  <div class="search-panel" id="searchPanel">
+    <h3 style="margin-bottom: 12px;">搜索文档</h3>
+    <input type="text" class="search-input" id="searchInput" placeholder="输入搜索关键词...">
+    <div class="search-results" id="searchResults"></div>
+  </div>
+  
+  <!-- 主题切换 -->
+  <div class="theme-switcher">
+    <div class="theme-dot" data-theme="dark" style="background: #1e1e2e;" title="深色主题"></div>
+    <div class="theme-dot" data-theme="light" style="background: #f5f5f5;" title="浅色主题"></div>
+    <div class="theme-dot" data-theme="high-contrast" style="background: #000; border-color: #ffff00;" title="高对比度"></div>
+  </div>
+  
+  <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+  
+  <script src="js/editor.js"></script>
+  <script src="js/signature.js"></script>
+  <script src="js/drawing.js"></script>
+  <script src="js/search.js"></script>
+  <script src="js/form-filler.js"></script>
+</body>
+</html>

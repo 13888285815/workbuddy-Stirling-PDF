@@ -698,5 +698,17 @@
         "description": "全面修复损坏的 PDF 文件"
       }
     ]
+  },
+  {
+    "label": "💡 意念PDF编辑器",
+    "children": [
+      {
+        "title": "意念PDF编辑器",
+        "id": "mindpdf-editor",
+        "url": "mindpdf/index.html",
+        "isApp": true,
+        "description": "专业 PDF 编辑器 — 支持签名、绘制、标注、表单填写、全文搜索、多主题"
+      }
+    ]
   }
 ]

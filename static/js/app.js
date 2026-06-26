@@ -2,7 +2,7 @@
 /* 架构：catalog.json 驱动 + 树形目录 + 网格/列表浏览 + 工具执行 */
 
 // ══ 全局状态 ══
-const CATALOG_URL = 'static/catalog.json';
+const CATALOG_URL = 'catalog.json';
 let catalog = [];
 let filteredCatalog = [];
 let currentView = 'grid';
@@ -98,7 +98,17 @@ async function loadCatalog() {
 
 function countTools(cats) {
   let n = 0;
-  cats.forEach(c => (c.children || []).forEach(g => n += (g.children || []).length));
+  cats.forEach(c => {
+    (c.children || []).forEach(child => {
+      if (child.children) {
+        // 两层嵌套：分类→分组→工具
+        n += (child.children || []).length;
+      } else {
+        // 扁平结构：分类→工具
+        n += 1;
+      }
+    });
+  });
   return n;
 }
 
@@ -228,7 +238,7 @@ function highlightMatch(text, kw) {
   return safe.replace(re, '<mark>$1</mark>');
 }
 
-// ══ 选择条目（工具/文档） ══
+// ══ 选择条目（工具/文档/编辑器） ══
 function selectItem(item, labelEl) {
   // 清除选中态
   document.querySelectorAll('.tree-label.active').forEach(n => n.classList.remove('active'));
@@ -238,7 +248,12 @@ function selectItem(item, labelEl) {
   if (type === 'tool') {
     openToolPanel(item);
   } else if (type === 'doc') {
-    openDoc(item);
+    // 区分普通文档(open in new tab)和内置编辑器(open in panel)
+    if (item.isApp) {
+      openEmbeddedApp(item);
+    } else {
+      openDoc(item);
+    }
   } else {
     showToast('这是一个分类文件夹', 'info');
   }
@@ -910,6 +925,32 @@ async function openDoc(docItem) {
   window.open(url, '_blank');
 }
 
+// ══ 打开嵌入式应用（意念PDF编辑器） ══
+function openEmbeddedApp(appItem) {
+  selectedTool = appItem;
+  $('emptyState').style.display = 'none';
+  $('gridView').style.display = 'none';
+  $('listView').style.display = 'none';
+  const panel = $('toolPanel');
+  panel.style.display = 'flex';
+  $('toolPanelTitle').textContent = appItem.title || appItem.label;
+  
+  const body = $('toolPanelBody');
+  body.innerHTML = `
+    <div class="app-embed-container">
+      <iframe 
+        src="${appItem.url}" 
+        style="width:100%;height:calc(100vh - 220px);border:none;border-radius:12px;background:#1e1e2e;"
+        allow="clipboard-read;clipboard-write"
+        title="${escapeHtml(appItem.title || appItem.label)}">
+      </iframe>
+    </div>
+  `;
+  
+  // 移动端关闭侧边栏
+  if (window.innerWidth <= 768) closeSidebarMobile();
+}
+
 // ══ 搜索过滤 ══
 let searchTimer = null;
 function onSearch(val) {
@@ -1035,7 +1076,17 @@ function updateBrowseInfo() {
 
 function getAllItems(cats) {
   const out = [];
-  cats.forEach(c => (c.children || []).forEach(g => out.push(...(g.children || []))));
+  cats.forEach(c => {
+    (c.children || []).forEach(child => {
+      if (child.children) {
+        // 两层嵌套：分类→分组→工具
+        out.push(...(child.children || []));
+      } else {
+        // 扁平结构：分类→工具
+        out.push(child);
+      }
+    });
+  });
   return out;
 }
 
@@ -1054,6 +1105,8 @@ function renderGrid(kw) {
     el.innerHTML = '<div class="empty-state" style="position:static;height:200px"><i class="fas fa-search" style="font-size:32px"></i><p style="font-size:13px">没有匹配的工具</p></div>';
     return;
   }
+  // 给 items 加上 _idx 用于 onclick
+  items.forEach((item, i) => { item._idx = i; });
   el.innerHTML = items.map(item => {
     const type = getItemType(item);
     const icon = type === 'doc' ? 'fa-file-alt' : (TOOL_ICONS[item.id] || DEFAULT_TOOL_ICON);
@@ -1062,7 +1115,7 @@ function renderGrid(kw) {
     const iconColor = type === 'doc' ? '#6bb3ff' : type === 'tool' ? 'var(--primary)' : '#ffd166';
     const badge = type === 'doc' ? '文档' : '工具';
     return `
-      <div class="tool-card" onclick="selectItem(${item._idx || 0}, this)" data-idx="${item._idx || 0}">
+      <div class="tool-card" onclick="selectItemById('${item.id || item._idx}')" data-idx="${item._idx || 0}">
         <div class="tool-badge">${badge}</div>
         <div class="tool-icon" style="color:${iconColor}"><i class="fas ${icon}"></i></div>
         <div class="tool-name">${highlightMatch(name, kw)}</div>
@@ -1070,9 +1123,6 @@ function renderGrid(kw) {
       </div>
     `;
   }).join('');
-
-  // 给 items 加上 _idx 用于 onclick
-  items.forEach((item, i) => { item._idx = i; });
 }
 
 function renderList(kw) {
@@ -1116,8 +1166,10 @@ function selectItem2(item) {
 }
 function selectItemById(id) {
   const items = getAllItems(filteredCatalog).filter(matchesFilter);
-  const item = items.find(it => (it.id || it._idx) == id);
+  // 优先按 id 精确匹配，再按 _idx 匹配
+  const item = items.find(it => String(it.id || '') === String(id)) || items.find(it => it._idx == id);
   if (item) selectItem2(item);
+  else showToast('未找到工具: ' + id, 'warning');
 }
 
 // ══ 上传文件 ══
