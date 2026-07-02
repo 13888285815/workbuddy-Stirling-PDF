@@ -1,19 +1,23 @@
 [
   {
-    "label": "📖 文档阅读",
+    "label": "💡 意念PDF编辑器",
     "children": [
       {
-        "label": "示例文档",
+        "label": "PDF 编辑器工具",
         "children": [
           {
-            "title": "Stirling PDF 使用指南",
-            "pdf": "/docs/stirling-pdf-guide.pdf",
-            "size": "2.4 MB"
+            "title": "意念PDF编辑器 (修复版)",
+            "id": "mindpdf-editor-fixed",
+            "url": "mindpdf/fixed_editor.html",
+            "isApp": true,
+            "description": "专业 PDF 编辑器 — 支持文本、绘制、高亮、签名、保存编辑内容到PDF文件"
           },
           {
-            "title": "PDF 工具速查表",
-            "pdf": "/docs/quick-reference.pdf",
-            "size": "856 KB"
+            "title": "意念PDF编辑器 (完整版)",
+            "id": "mindpdf-editor-full",
+            "url": "mindpdf/index.html",
+            "isApp": true,
+            "description": "完整功能 PDF 编辑器 — 支持签名、绘制、标注、表单填写、全文搜索、多主题"
           }
         ]
       }
@@ -249,7 +253,7 @@
       },
       {
         "title": "平面化 PDF",
-        "表单": "flatten",
+        "id": "pdf-flatten",
         "type": "tool",
         "endpoint": "/api/pdf/flatten",
         "input_types": ["application/pdf"],
@@ -700,14 +704,22 @@
     ]
   },
   {
-    "label": "💡 意念PDF编辑器",
+    "label": "📖 文档阅读",
     "children": [
       {
-        "title": "意念PDF编辑器",
-        "id": "mindpdf-editor",
-        "url": "mindpdf/index.html",
-        "isApp": true,
-        "description": "专业 PDF 编辑器 — 支持签名、绘制、标注、表单填写、全文搜索、多主题"
+        "label": "示例文档",
+        "children": [
+          {
+            "title": "Stirling PDF 使用指南",
+            "pdf": "/docs/stirling-pdf-guide.pdf",
+            "size": "2.4 MB"
+          },
+          {
+            "title": "PDF 工具速查表",
+            "pdf": "/docs/quick-reference.pdf",
+            "size": "856 KB"
+          }
+        ]
       }
     ]
   }

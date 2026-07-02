@@ -118,7 +118,9 @@ function renderTree(items) {
     // 判断子项类型：第一层是分组还是工具
     const firstChild = cat.children?.[0];
     const childIsGroup = firstChild && (firstChild.label || firstChild.title) && firstChild.children;
-    const childIsTool = firstChild && firstChild.id && !firstChild.children;
+    const childIsTool = firstChild && !firstChild.children && (
+        firstChild.id || firstChild.endpoint || firstChild.type || firstChild.url || firstChild.pdf
+    );
 
     if (childIsTool) {
       // 扁平列表：直接渲染为叶子节点（工具直接挂载在分类下）
@@ -931,7 +933,9 @@ function filterCatalog(nodes, q) {
   nodes.forEach(n1 => {
     const c1 = { label: n1.label, children: [] };
     const firstChild = n1.children?.[0];
-    const childIsTool = firstChild && firstChild.id && !firstChild.children;
+    const childIsTool = firstChild && !firstChild.children && (
+        firstChild.id || firstChild.endpoint || firstChild.type || firstChild.url || firstChild.pdf
+    );
 
     if (childIsTool) {
       // 扁平结构：直接过滤工具
