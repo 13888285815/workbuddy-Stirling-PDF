@@ -203,7 +203,7 @@ subprojects {
         // - CVE-2022-25647: gson 2.8.9+ (explicit dependency overrides tabula 2.8.7)
         // - CVE-2025-66453: rhino 1.7.15 (explicit dependency overrides verapdf 1.7.13)
         // Fallback strategy force declarations for additional safety:
-        resolutionStrategy.force 'com.google.code.gson:gson:2.13.2'
+        resolutionStrategy.force 'com.google.code.gson:gson:2.14.0'
         resolutionStrategy.force 'org.mozilla:rhino:1.9.1'
         // CVE-2025-48924: commons-lang3 3.20.0 DoS prevention
         resolutionStrategy.force 'org.apache.commons:commons-lang3:3.20.0'
